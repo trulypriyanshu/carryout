@@ -3,7 +3,8 @@ import {
   Plus, Calendar, Repeat, Trash2, Edit2, Check, Save, 
   X, ChevronDown, ChevronUp, GripVertical, CheckCircle2, 
   Clock, TrendingUp, ListTodo, AlertCircle, Layout, 
-  PieChart, Tag, ArrowRight, MoreHorizontal, Sun, Moon
+  PieChart, Tag, ArrowRight, MoreHorizontal, Sun, Moon,
+  Filter, Bell
 } from 'lucide-react';
 import { 
   format, addDays, addWeeks, addMonths, addYears, 
@@ -87,7 +88,6 @@ const getRecurrenceDisplayText = (task) => {
 const calculateNextOccurrence = (task, completedDate) => {
   if (!task.recurrence || !task.recurrencePattern) return null;
   
-  // Start from the completed date (now) instead of the original due date
   const referenceDate = completedDate || new Date();
   const currentDate = parseISO(task.dueDate);
   const now = new Date();
@@ -99,18 +99,13 @@ const calculateNextOccurrence = (task, completedDate) => {
 
   let nextDate = currentDate;
   
-  // If the current task is already overdue or due today, we need to find the next occurrence
-  // We'll calculate from the current date to ensure we get the next valid date
   if (isAfter(now, currentDate) || isSameDay(now, currentDate)) {
-    // For the first iteration, start from current date
     nextDate = now;
   }
 
-  // Safety break to prevent infinite loops in bad data
   let iterations = 0;
   const MAX_ITERATIONS = 1000;
 
-  // Keep adding intervals until we find a date in the future
   while ((isAfter(now, nextDate) || isSameDay(nextDate, currentDate)) && iterations < MAX_ITERATIONS) {
     nextDate = addInterval(nextDate, task);
     
@@ -121,7 +116,6 @@ const calculateNextOccurrence = (task, completedDate) => {
     iterations++;
   }
 
-  // If we found a valid future date, return it
   if (isAfter(nextDate, now) || isSameDay(nextDate, addDays(now, 1))) {
     return nextDate.toISOString().split('T')[0];
   }
@@ -139,7 +133,6 @@ const addInterval = (date, task) => {
     case 'weekly':
       let nextDate = addWeeks(date, pattern.interval || 1);
       if (pattern.daysOfWeek?.length > 0) {
-        // Find next valid day
         let daysChecked = 0;
         while (!pattern.daysOfWeek.includes(
           nextDate.toLocaleDateString('en-US', { weekday: 'long' })
@@ -215,18 +208,19 @@ const SAMPLE_TASKS = [
   }
 ];
 
+// Refined, subtle premium colors
 const CATEGORY_COLORS = {
-  work: 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800',
-  personal: 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800',
-  meeting: 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800',
-  learning: 'bg-cyan-100 text-cyan-700 border-cyan-200 dark:bg-cyan-900/30 dark:text-cyan-300 dark:border-cyan-800',
-  health: 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800'
+  work: 'bg-blue-50/80 text-blue-700 ring-1 ring-blue-600/20 dark:bg-blue-900/20 dark:text-blue-300 dark:ring-blue-500/30',
+  personal: 'bg-purple-50/80 text-purple-700 ring-1 ring-purple-600/20 dark:bg-purple-900/20 dark:text-purple-300 dark:ring-purple-500/30',
+  meeting: 'bg-amber-50/80 text-amber-700 ring-1 ring-amber-600/20 dark:bg-amber-900/20 dark:text-amber-300 dark:ring-amber-500/30',
+  learning: 'bg-cyan-50/80 text-cyan-700 ring-1 ring-cyan-600/20 dark:bg-cyan-900/20 dark:text-cyan-300 dark:ring-cyan-500/30',
+  health: 'bg-emerald-50/80 text-emerald-700 ring-1 ring-emerald-600/20 dark:bg-emerald-900/20 dark:text-emerald-300 dark:ring-emerald-500/30'
 };
 
 const PRIORITY_COLORS = {
-  high: 'text-red-600 bg-red-50 border-red-100 dark:bg-red-900/20 dark:text-red-300 dark:border-red-900/50',
-  medium: 'text-orange-600 bg-orange-50 border-orange-100 dark:bg-orange-900/20 dark:text-orange-300 dark:border-orange-900/50',
-  low: 'text-green-600 bg-green-50 border-green-100 dark:bg-green-900/20 dark:text-green-300 dark:border-green-900/50'
+  high: 'text-rose-600 bg-rose-50 ring-1 ring-rose-500/20 dark:bg-rose-900/20 dark:text-rose-300 dark:ring-rose-500/30',
+  medium: 'text-orange-600 bg-orange-50 ring-1 ring-orange-500/20 dark:bg-orange-900/20 dark:text-orange-300 dark:ring-orange-500/30',
+  low: 'text-teal-600 bg-teal-50 ring-1 ring-teal-500/20 dark:bg-teal-900/20 dark:text-teal-300 dark:ring-teal-500/30'
 };
 
 // --- COMPONENTS ---
@@ -261,24 +255,24 @@ const Checklist = ({ checklist, onUpdate, isEditingMode = false }) => {
   };
 
   return (
-    <div className={`mt-4 pt-4 border-t border-slate-100 dark:border-slate-700 ${isEditingMode ? 'bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg' : ''}`}>
-      <div className="flex items-center gap-2 mb-3 text-sm font-medium text-slate-500 dark:text-slate-400">
-        <ListTodo size={16} />
-        <span>Subtasks ({checklist.filter(i => i.checked).length}/{checklist.length})</span>
+    <div className={`mt-6 pt-5 border-t border-slate-100 dark:border-slate-800 ${isEditingMode ? 'bg-slate-50/50 dark:bg-slate-800/50 p-4 rounded-xl' : ''}`}>
+      <div className="flex items-center gap-2 mb-4 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+        <ListTodo size={14} />
+        <span>Subtasks • {Math.round((checklist.filter(i => i.checked).length / (checklist.length || 1)) * 100)}% Complete</span>
       </div>
       
-      <div className="space-y-2 mb-3">
+      <div className="space-y-3 mb-4">
         {checklist.map(item => (
           <div key={item.id} className="group flex items-start gap-3 text-sm">
             <button
               onClick={() => toggleItem(item.id)}
-              className={`mt-0.5 w-4 h-4 rounded border flex items-center justify-center transition-colors ${
+              className={`mt-0.5 w-5 h-5 rounded-md border flex items-center justify-center transition-all duration-200 ${
                 item.checked 
-                  ? 'bg-indigo-500 border-indigo-500 text-white' 
-                  : 'border-slate-300 dark:border-slate-600 hover:border-indigo-400 dark:hover:border-indigo-400'
+                  ? 'bg-indigo-600 border-indigo-600 text-white shadow-sm scale-100' 
+                  : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 hover:border-indigo-400 dark:hover:border-indigo-400 text-transparent'
               }`}
             >
-              {item.checked && <Check size={10} strokeWidth={4} />}
+              <Check size={12} strokeWidth={3} />
             </button>
             
             {editingId === item.id ? (
@@ -290,14 +284,16 @@ const Checklist = ({ checklist, onUpdate, isEditingMode = false }) => {
                   onChange={(e) => setEditingText(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && saveEditing(item.id)}
                   onBlur={() => saveEditing(item.id)}
-                  className="flex-1 text-sm bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-600 rounded px-2 py-0.5"
+                  className="flex-1 text-sm bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-md px-3 py-1 shadow-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                 />
               </div>
             ) : (
               <span 
                 onClick={() => startEditing(item)}
-                className={`flex-1 transition-all cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400 ${
-                  item.checked ? 'text-slate-400 dark:text-slate-500 line-through' : 'text-slate-700 dark:text-slate-200'
+                className={`flex-1 transition-all cursor-pointer select-none ${
+                  item.checked 
+                    ? 'text-slate-400 dark:text-slate-600 line-through decoration-slate-300' 
+                    : 'text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400'
                 }`}
               >
                 {item.text}
@@ -306,7 +302,7 @@ const Checklist = ({ checklist, onUpdate, isEditingMode = false }) => {
             
             <button 
               onClick={() => deleteItem(item.id)}
-              className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 transition-opacity p-0.5"
+              className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded transition-all"
             >
               <Trash2 size={14} />
             </button>
@@ -314,19 +310,24 @@ const Checklist = ({ checklist, onUpdate, isEditingMode = false }) => {
         ))}
       </div>
       
-      <div className="flex items-center gap-2">
-        <input
-          type="text"
-          value={newItem}
-          onChange={(e) => setNewItem(e.target.value)}
-          placeholder="Add a subtask..."
-          className="flex-1 text-sm bg-slate-50 dark:bg-slate-800 border-0 rounded-md px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:bg-white dark:focus:bg-slate-700 transition-all placeholder:text-slate-400 dark:text-slate-200"
-          onKeyDown={(e) => e.key === 'Enter' && addItem()}
-        />
+      <div className="flex items-center gap-2 group focus-within:ring-2 focus-within:ring-indigo-500/20 rounded-lg">
+        <div className="relative flex-1">
+          <input
+            type="text"
+            value={newItem}
+            onChange={(e) => setNewItem(e.target.value)}
+            placeholder="Add a subtask..."
+            className="w-full text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg pl-3 pr-10 py-2.5 focus:outline-none focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-950 transition-all placeholder:text-slate-400 dark:text-slate-200"
+            onKeyDown={(e) => e.key === 'Enter' && addItem()}
+          />
+          <div className="absolute right-2 top-1/2 -translate-y-1/2">
+             <span className="text-[10px] text-slate-400 font-medium px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">↵</span>
+          </div>
+        </div>
         <button 
           onClick={addItem}
           disabled={!newItem.trim()}
-          className="p-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-md hover:bg-indigo-100 dark:hover:bg-indigo-900/50 disabled:opacity-50 transition-colors"
+          className="p-2.5 bg-indigo-600 dark:bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 dark:hover:bg-indigo-500 disabled:opacity-50 disabled:hover:bg-indigo-600 transition-colors shadow-sm"
         >
           <Plus size={16} />
         </button>
@@ -339,39 +340,42 @@ const RecurrenceSettings = ({ recurrence, pattern, onChangeRecurrence, onChangeP
   const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
   return (
-    <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 mt-4 space-y-4">
-      <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
-        <Repeat size={16} /> Recurrence Rules
+    <div className="p-5 bg-slate-50/50 dark:bg-slate-800/50 rounded-xl border border-slate-200/60 dark:border-slate-700/60 mt-6 space-y-5">
+      <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wide flex items-center gap-2">
+        <Repeat size={14} className="text-indigo-500" /> Recurrence Rules
       </h4>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div>
-          <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Frequency</label>
-          <select 
-            value={recurrence} 
-            onChange={(e) => onChangeRecurrence(e.target.value)}
-            className="w-full text-sm border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-          >
-            <option value="none">Does not repeat</option>
-            <option value="daily">Daily</option>
-            <option value="weekly">Weekly</option>
-            <option value="monthly">Monthly</option>
-            <option value="yearly">Yearly</option>
-          </select>
+          <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2">Frequency</label>
+          <div className="relative">
+            <select 
+              value={recurrence} 
+              onChange={(e) => onChangeRecurrence(e.target.value)}
+              className="w-full text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2.5 appearance-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 dark:text-slate-200 transition-all cursor-pointer"
+            >
+              <option value="none">Does not repeat</option>
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+              <option value="yearly">Yearly</option>
+            </select>
+            <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+          </div>
         </div>
 
         {recurrence !== 'none' && (
           <div>
-            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Interval</label>
-            <div className="flex items-center gap-2">
+            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2">Interval</label>
+            <div className="flex items-center gap-3">
               <input
                 type="number"
                 min="1"
                 value={pattern.interval || 1}
                 onChange={(e) => onChangePattern({ ...pattern, interval: parseInt(e.target.value) || 1 })}
-                className="w-20 text-sm border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-20 text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 dark:text-slate-200 transition-all"
               />
-              <span className="text-sm text-slate-600 dark:text-slate-400">
+              <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
                 {recurrence === 'daily' ? 'day(s)' : recurrence === 'weekly' ? 'week(s)' : recurrence === 'monthly' ? 'month(s)' : 'year(s)'}
               </span>
             </div>
@@ -381,7 +385,7 @@ const RecurrenceSettings = ({ recurrence, pattern, onChangeRecurrence, onChangeP
 
       {recurrence === 'weekly' && (
         <div>
-          <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">Repeat On</label>
+          <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2">Repeat On</label>
           <div className="flex flex-wrap gap-2">
             {daysOfWeek.map(day => (
               <button
@@ -394,10 +398,10 @@ const RecurrenceSettings = ({ recurrence, pattern, onChangeRecurrence, onChangeP
                     : [...currentDays, day];
                   onChangePattern({ ...pattern, daysOfWeek: newDays });
                 }}
-                className={`px-3 py-1.5 text-xs rounded-full border transition-all ${
+                className={`px-3 py-2 text-xs font-medium rounded-lg border transition-all duration-200 ${
                   pattern.daysOfWeek?.includes(day)
                     ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
-                    : 'bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-600 hover:border-indigo-300'
+                    : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-slate-600'
                 }`}
               >
                 {day.substring(0, 3)}
@@ -409,12 +413,12 @@ const RecurrenceSettings = ({ recurrence, pattern, onChangeRecurrence, onChangeP
 
       {recurrence !== 'none' && (
         <div>
-           <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">End Date (Optional)</label>
+           <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2">End Date (Optional)</label>
            <input 
             type="date"
             value={pattern.endDate || ''}
             onChange={(e) => onChangePattern({...pattern, endDate: e.target.value || null})}
-            className="text-sm border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+            className="text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2.5 w-full focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 dark:text-slate-200 transition-all"
            />
         </div>
       )}
@@ -427,7 +431,6 @@ const TaskItem = ({ task, onUpdate, onDelete, onCompleteRecurring }) => {
   const [editedTask, setEditedTask] = useState(task);
   const [isExpanded, setIsExpanded] = useState(false);
 
-  // Sync editedTask if prop changes externally
   useEffect(() => {
     setEditedTask(task);
   }, [task]);
@@ -451,93 +454,118 @@ const TaskItem = ({ task, onUpdate, onDelete, onCompleteRecurring }) => {
 
   if (isEditing) {
     return (
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-indigo-100 dark:border-indigo-900 p-6 mb-4 animate-in fade-in zoom-in-95 duration-200">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="font-semibold text-slate-800 dark:text-white">Edit Task</h3>
-          <button onClick={() => setIsEditing(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl shadow-slate-200/50 dark:shadow-black/20 border border-slate-200 dark:border-slate-700 p-6 mb-4 animate-in fade-in zoom-in-95 duration-200 ring-1 ring-indigo-500/10">
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="font-bold text-lg text-slate-800 dark:text-white flex items-center gap-2">
+            <Edit2 size={18} className="text-indigo-600" /> Edit Task
+          </h3>
+          <button onClick={() => setIsEditing(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors">
             <X size={20} />
           </button>
         </div>
         
-        <div className="space-y-4">
-          <input
-            type="text"
-            value={editedTask.title}
-            onChange={(e) => setEditedTask({...editedTask, title: e.target.value})}
-            className="w-full text-lg font-medium border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 border p-2"
-            placeholder="Task title"
-          />
+        <div className="space-y-5">
+          <div>
+            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Title</label>
+            <input
+              type="text"
+              value={editedTask.title}
+              onChange={(e) => setEditedTask({...editedTask, title: e.target.value})}
+              className="w-full text-lg font-semibold border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 border px-4 py-3 shadow-sm transition-all"
+              placeholder="Task title"
+            />
+          </div>
           
-          <textarea
-            value={editedTask.description}
-            onChange={(e) => setEditedTask({...editedTask, description: e.target.value})}
-            className="w-full text-sm text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-600 dark:bg-slate-700 rounded-lg focus:ring-2 focus:ring-indigo-500 border p-2 min-h-[80px]"
-            placeholder="Description..."
-          />
+          <div>
+            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Description</label>
+            <textarea
+              value={editedTask.description}
+              onChange={(e) => setEditedTask({...editedTask, description: e.target.value})}
+              className="w-full text-sm text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 dark:bg-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 border px-4 py-3 min-h-[100px] shadow-sm transition-all resize-y"
+              placeholder="Add some details..."
+            />
+          </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-5">
             <div>
-              <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Priority</label>
-              <select 
-                value={editedTask.priority}
-                onChange={(e) => setEditedTask({...editedTask, priority: e.target.value})}
-                className="w-full text-sm border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-md"
-              >
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-              </select>
+              <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Priority</label>
+              <div className="relative">
+                <select 
+                  value={editedTask.priority}
+                  onChange={(e) => setEditedTask({...editedTask, priority: e.target.value})}
+                  className="w-full text-sm border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white rounded-xl px-4 py-2.5 appearance-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer"
+                >
+                  <option value="low">Low Priority</option>
+                  <option value="medium">Medium Priority</option>
+                  <option value="high">High Priority</option>
+                </select>
+                <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+              </div>
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Category</label>
-              <select 
-                value={editedTask.category}
-                onChange={(e) => setEditedTask({...editedTask, category: e.target.value})}
-                className="w-full text-sm border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-md"
-              >
-                <option value="work">Work</option>
-                <option value="personal">Personal</option>
-                <option value="meeting">Meeting</option>
-                <option value="learning">Learning</option>
-                <option value="health">Health</option>
-              </select>
+              <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Category</label>
+              <div className="relative">
+                <select 
+                  value={editedTask.category}
+                  onChange={(e) => setEditedTask({...editedTask, category: e.target.value})}
+                  className="w-full text-sm border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white rounded-xl px-4 py-2.5 appearance-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer"
+                >
+                  <option value="work">Work</option>
+                  <option value="personal">Personal</option>
+                  <option value="meeting">Meeting</option>
+                  <option value="learning">Learning</option>
+                  <option value="health">Health</option>
+                </select>
+                <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+              </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 items-end">
+          <div className="grid grid-cols-2 gap-5 items-end">
              <div>
-              <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Due Date</label>
+              <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Due Date</label>
               <input
                 type="date"
                 value={editedTask.dueDate}
                 onChange={(e) => setEditedTask({...editedTask, dueDate: e.target.value})}
-                className="w-full text-sm border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-md"
+                className="w-full text-sm border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer"
               />
             </div>
-            <div className="flex gap-2 justify-end">
+            <div className="flex gap-3 justify-end">
+              <button 
+                onClick={() => setIsEditing(false)}
+                className="px-4 py-2.5 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
               <button 
                 onClick={handleSave}
-                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
+                className="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all shadow-sm shadow-indigo-200 dark:shadow-none text-sm font-semibold"
               >
                 <Save size={16} /> Save Changes
               </button>
             </div>
           </div>
 
-          <div className="border-t border-slate-100 dark:border-slate-700 pt-2">
-            <Checklist 
+          <Checklist 
                checklist={editedTask.checklist || []}
                onUpdate={(updatedList) => setEditedTask({...editedTask, checklist: updatedList})}
                isEditingMode={true}
             />
-          </div>
 
-          <div className="border-t border-slate-100 dark:border-slate-700 pt-2">
+          <div className="pt-2">
             <button 
               onClick={() => setIsExpanded(!isExpanded)}
-              className="text-indigo-600 dark:text-indigo-400 text-sm font-medium flex items-center gap-1 hover:underline"
+              className={`w-full flex items-center justify-between p-3 rounded-lg border transition-all ${
+                isExpanded 
+                  ? 'bg-indigo-50/50 border-indigo-200 dark:bg-indigo-900/20 dark:border-indigo-900/50 text-indigo-700 dark:text-indigo-300' 
+                  : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-indigo-300 dark:hover:border-slate-600'
+              }`}
             >
-              <Repeat size={14} /> {isExpanded ? 'Hide' : 'Edit'} Recurrence Rules
+              <span className="text-sm font-semibold flex items-center gap-2">
+                <Repeat size={16} /> Recurrence Rules
+              </span>
+              {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
             </button>
             
             {isExpanded && (
@@ -556,21 +584,28 @@ const TaskItem = ({ task, onUpdate, onDelete, onCompleteRecurring }) => {
 
   return (
     <div 
-      className={`group relative bg-white dark:bg-slate-800 rounded-xl border transition-all duration-200 mb-3
-        ${task.completed ? 'opacity-75 border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50' : 'hover:shadow-md border-slate-200 dark:border-slate-700 shadow-sm'}
-        ${isOverdue ? 'border-l-4 border-l-red-500' : isDueToday ? 'border-l-4 border-l-amber-500' : 'border-l-4 border-l-transparent hover:border-l-indigo-500'}
+      className={`group relative bg-white dark:bg-slate-900 rounded-2xl border transition-all duration-300 mb-4 overflow-hidden
+        ${task.completed 
+          ? 'opacity-75 border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50' 
+          : 'hover:shadow-lg hover:shadow-slate-200/50 dark:hover:shadow-none border-slate-200 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-slate-700 hover:-translate-y-0.5'
+        }
       `}
     >
-      <div className="p-4 flex gap-4 items-start cursor-pointer" onClick={() => setIsExpanded(!isExpanded)}>
+      {/* Side Status Indicator */}
+      <div className={`absolute left-0 top-0 bottom-0 w-1.5 transition-colors duration-300
+        ${isOverdue ? 'bg-rose-500' : isDueToday ? 'bg-amber-500' : task.priority === 'high' ? 'bg-indigo-500' : 'bg-transparent group-hover:bg-indigo-500/30'}
+      `} />
+
+      <div className="p-5 pl-7 flex gap-5 items-start cursor-pointer" onClick={() => setIsExpanded(!isExpanded)}>
         {/* Checkbox / Complete Button */}
         <button 
           onClick={handleComplete}
-          className={`mt-1 flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200
+          className={`mt-1 flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 shadow-sm
             ${task.completed 
-              ? 'bg-emerald-500 border-emerald-500 text-white' 
+              ? 'bg-emerald-500 border-emerald-500 text-white scale-110' 
               : task.recurrence 
-                ? 'border-indigo-300 dark:border-indigo-600 text-transparent hover:border-indigo-500 hover:text-indigo-500 dark:hover:text-indigo-400' 
-                : 'border-slate-300 dark:border-slate-500 text-transparent hover:border-emerald-500 hover:text-emerald-500'
+                ? 'border-indigo-300 dark:border-indigo-700 text-transparent hover:border-indigo-500 hover:text-indigo-500 dark:hover:text-indigo-400 bg-white dark:bg-slate-800' 
+                : 'border-slate-300 dark:border-slate-600 text-transparent hover:border-emerald-500 hover:text-emerald-500 bg-white dark:bg-slate-800'
             }
           `}
         >
@@ -579,20 +614,24 @@ const TaskItem = ({ task, onUpdate, onDelete, onCompleteRecurring }) => {
 
         {/* Content */}
         <div className="flex-1 min-w-0">
-          <div className="flex justify-between items-start gap-2">
-            <h4 className={`font-medium text-slate-800 dark:text-slate-100 truncate pr-8 ${task.completed ? 'line-through text-slate-500 dark:text-slate-500' : ''}`}>
+          <div className="flex justify-between items-start gap-3">
+            <h4 className={`font-semibold text-lg text-slate-800 dark:text-slate-100 truncate pr-16 transition-all ${task.completed ? 'line-through text-slate-400 dark:text-slate-500 decoration-slate-300' : ''}`}>
               {task.title}
             </h4>
-            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity absolute top-4 right-4 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-lg p-1">
+            
+            {/* Quick Actions - Visible on Hover */}
+            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200 absolute top-4 right-4 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-lg p-1 shadow-sm border border-slate-100 dark:border-slate-700">
               <button 
                 onClick={(e) => { e.stopPropagation(); setIsEditing(true); }}
-                className="p-1.5 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-md transition-colors"
+                className="p-2 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-md transition-colors"
+                title="Edit"
               >
                 <Edit2 size={16} />
               </button>
               <button 
                 onClick={(e) => { e.stopPropagation(); onDelete(task.id); }}
-                className="p-1.5 text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-md transition-colors"
+                className="p-2 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded-md transition-colors"
+                title="Delete"
               >
                 <Trash2 size={16} />
               </button>
@@ -600,33 +639,33 @@ const TaskItem = ({ task, onUpdate, onDelete, onCompleteRecurring }) => {
           </div>
 
           {task.description && (
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">{task.description}</p>
+            <p className={`text-sm text-slate-500 dark:text-slate-400 mt-1.5 line-clamp-2 leading-relaxed ${task.completed ? 'opacity-60' : ''}`}>{task.description}</p>
           )}
 
-          <div className="flex flex-wrap items-center gap-2 mt-3">
+          <div className="flex flex-wrap items-center gap-2 mt-4">
             {/* Metadata Badges */}
-            <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${CATEGORY_COLORS[task.category]}`}>
+            <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold shadow-sm ${CATEGORY_COLORS[task.category]}`}>
               {task.category}
             </span>
-            <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${PRIORITY_COLORS[task.priority]}`}>
+            <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold shadow-sm ${PRIORITY_COLORS[task.priority]}`}>
               {task.priority}
             </span>
             
-            <div className={`flex items-center gap-1 text-xs px-2 py-0.5 rounded border ${isOverdue ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-300 border-red-100 dark:border-red-900/30' : 'bg-slate-50 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 border-slate-100 dark:border-slate-700'}`}>
-              <Calendar size={12} />
+            <div className={`flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-md shadow-sm border ${isOverdue ? 'bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-300 border-rose-100 dark:border-rose-900/30' : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'}`}>
+              <Calendar size={13} />
               {format(parseISO(task.dueDate), 'MMM d')}
             </div>
 
             {task.recurrence && (
-              <div className="flex items-center gap-1 text-xs text-indigo-600 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-900/20 px-2 py-0.5 rounded border border-indigo-100 dark:border-indigo-900/30">
-                <Repeat size={12} />
+              <div className="flex items-center gap-1.5 text-xs font-medium text-indigo-600 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-900/20 px-2.5 py-1 rounded-md border border-indigo-100 dark:border-indigo-900/30">
+                <Repeat size={13} />
                 {task.recurrence}
               </div>
             )}
             
             {task.checklist && task.checklist.length > 0 && (
-               <div className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-700/50 px-2 py-0.5 rounded border border-slate-100 dark:border-slate-700 ml-auto">
-                <ListTodo size={12} />
+               <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 px-2.5 py-1 rounded-md border border-slate-200 dark:border-slate-700 ml-auto">
+                <ListTodo size={13} />
                 {task.checklist.filter(i => i.checked).length}/{task.checklist.length}
               </div>
             )}
@@ -636,12 +675,13 @@ const TaskItem = ({ task, onUpdate, onDelete, onCompleteRecurring }) => {
 
       {/* Expanded Details (Checklist & Recurrence Info) */}
       {isExpanded && !isEditing && (
-        <div className="px-4 pb-4 animate-in slide-in-from-top-2 duration-200">
+        <div className="px-5 pb-5 pt-1 animate-in slide-in-from-top-2 duration-200 pl-7">
            {task.recurrence && (
-             <div className="mb-3 text-xs text-indigo-600 dark:text-indigo-300 bg-indigo-50/50 dark:bg-indigo-900/20 p-2 rounded border border-indigo-100/50 dark:border-indigo-900/30 flex items-start gap-2">
-               <Repeat size={14} className="mt-0.5" />
+             <div className="mb-4 text-xs font-medium text-indigo-700 dark:text-indigo-300 bg-indigo-50/80 dark:bg-indigo-900/20 p-3 rounded-lg border border-indigo-100 dark:border-indigo-900/30 flex items-start gap-2.5">
+               <Repeat size={14} className="mt-0.5 shrink-0" />
                <span>
-                 <strong>Recurring Rule:</strong> {getRecurrenceDisplayText(task)}
+                 <strong className="block mb-0.5">Recurring Rule</strong> 
+                 {getRecurrenceDisplayText(task)}
                </span>
              </div>
            )}
@@ -687,26 +727,29 @@ const AddTaskModal = ({ isOpen, onClose, onAdd }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
-        <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800">
-          <h2 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
-            <Plus className="w-5 h-5 text-indigo-600 dark:text-indigo-400" /> New Task
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-lg shadow-2xl shadow-slate-900/20 overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-5 duration-300 flex flex-col max-h-[90vh] ring-1 ring-white/10">
+        <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl sticky top-0 z-10">
+          <h2 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2.5">
+            <div className="bg-indigo-100 dark:bg-indigo-900/50 p-1.5 rounded-lg text-indigo-600 dark:text-indigo-400">
+              <Plus size={20} />
+            </div>
+            New Task
           </h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-full p-1 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-full p-2 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
             <X size={20} />
           </button>
         </div>
         
         <div className="p-6 overflow-y-auto custom-scrollbar">
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">What needs to be done?</label>
+              <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">What needs to be done?</label>
               <input
                 autoFocus
                 type="text"
                 placeholder="e.g., Review Q3 Marketing Report"
-                className="w-full text-lg border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 placeholder:text-slate-300 dark:placeholder:text-slate-500"
+                className="w-full text-lg border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 placeholder:text-slate-300 dark:placeholder:text-slate-600 px-4 py-3 shadow-sm transition-all"
                 value={task.title}
                 onChange={e => setTask({...task, title: e.target.value})}
                 required
@@ -714,60 +757,66 @@ const AddTaskModal = ({ isOpen, onClose, onAdd }) => {
             </div>
             
             <div>
-              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Description</label>
+              <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Description</label>
               <textarea
                 placeholder="Add details, context, or links..."
-                className="w-full text-sm border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 min-h-[80px]"
+                className="w-full text-sm border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 min-h-[100px] px-4 py-3 shadow-sm transition-all resize-y"
                 value={task.description}
                 onChange={e => setTask({...task, description: e.target.value})}
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-5">
               <div>
-                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Category</label>
-                <select 
-                  className="w-full text-sm border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:ring-indigo-500"
-                  value={task.category}
-                  onChange={e => setTask({...task, category: e.target.value})}
-                >
-                  <option value="work">Work</option>
-                  <option value="personal">Personal</option>
-                  <option value="meeting">Meeting</option>
-                  <option value="learning">Learning</option>
-                  <option value="health">Health</option>
-                </select>
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Category</label>
+                <div className="relative">
+                  <select 
+                    className="w-full text-sm border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white rounded-xl px-4 py-2.5 appearance-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer shadow-sm"
+                    value={task.category}
+                    onChange={e => setTask({...task, category: e.target.value})}
+                  >
+                    <option value="work">Work</option>
+                    <option value="personal">Personal</option>
+                    <option value="meeting">Meeting</option>
+                    <option value="learning">Learning</option>
+                    <option value="health">Health</option>
+                  </select>
+                  <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                </div>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Priority</label>
-                <select 
-                  className="w-full text-sm border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:ring-indigo-500"
-                  value={task.priority}
-                  onChange={e => setTask({...task, priority: e.target.value})}
-                >
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                </select>
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Priority</label>
+                <div className="relative">
+                  <select 
+                    className="w-full text-sm border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white rounded-xl px-4 py-2.5 appearance-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer shadow-sm"
+                    value={task.priority}
+                    onChange={e => setTask({...task, priority: e.target.value})}
+                  >
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                  </select>
+                  <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-5">
               <div>
-                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Due Date</label>
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Due Date</label>
                 <input
                   type="date"
-                  className="w-full text-sm border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:ring-indigo-500"
+                  className="w-full text-sm border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 shadow-sm cursor-pointer"
                   value={task.dueDate}
                   onChange={e => setTask({...task, dueDate: e.target.value})}
                 />
               </div>
               <div>
-                 <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Recurrence</label>
+                 <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Recurrence</label>
                  <button 
                   type="button"
                   onClick={() => setTask({...task, recurrence: task.recurrence === 'none' ? 'weekly' : 'none'})}
-                  className={`w-full flex items-center justify-between px-3 py-2 text-sm border rounded-lg transition-colors ${task.recurrence !== 'none' ? 'bg-indigo-50 dark:bg-indigo-900/30 border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300' : 'bg-white dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300'}`}
+                  className={`w-full flex items-center justify-between px-4 py-2.5 text-sm border rounded-xl transition-all shadow-sm ${task.recurrence !== 'none' ? 'bg-indigo-50 dark:bg-indigo-900/20 border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-indigo-300 dark:hover:border-slate-600'}`}
                  >
                    <span>{task.recurrence !== 'none' ? 'Enabled' : 'None'}</span>
                    <Repeat size={16} />
@@ -776,16 +825,18 @@ const AddTaskModal = ({ isOpen, onClose, onAdd }) => {
             </div>
 
             {task.recurrence !== 'none' && (
-              <RecurrenceSettings 
-                recurrence={task.recurrence}
-                pattern={task.recurrencePattern}
-                onChangeRecurrence={(val) => setTask({...task, recurrence: val})}
-                onChangePattern={(val) => setTask({...task, recurrencePattern: val})}
-              />
+              <div className="animate-in slide-in-from-top-2">
+                <RecurrenceSettings 
+                  recurrence={task.recurrence}
+                  pattern={task.recurrencePattern}
+                  onChangeRecurrence={(val) => setTask({...task, recurrence: val})}
+                  onChangePattern={(val) => setTask({...task, recurrencePattern: val})}
+                />
+              </div>
             )}
 
             <div className="pt-2">
-                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Checklist</label>
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Checklist</label>
                 <Checklist 
                     checklist={task.checklist}
                     onUpdate={(updatedList) => setTask({...task, checklist: updatedList})}
@@ -795,16 +846,16 @@ const AddTaskModal = ({ isOpen, onClose, onAdd }) => {
           </form>
         </div>
         
-        <div className="p-4 border-t border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 flex justify-end gap-3 flex-shrink-0">
+        <div className="p-5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-md flex justify-end gap-3 flex-shrink-0">
           <button 
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+            className="px-5 py-2.5 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-800 rounded-xl transition-colors"
           >
             Cancel
           </button>
           <button 
             onClick={handleSubmit}
-            className="px-6 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-600 dark:hover:bg-indigo-500 rounded-lg shadow-sm shadow-indigo-200 dark:shadow-none transition-all transform active:scale-95"
+            className="px-8 py-2.5 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-600 dark:hover:bg-indigo-500 rounded-xl shadow-lg shadow-indigo-500/30 dark:shadow-indigo-900/50 transition-all transform active:scale-95 hover:-translate-y-0.5"
           >
             Create Task
           </button>
@@ -821,7 +872,7 @@ const App = () => {
     const saved = localStorage.getItem('tasks');
     return saved ? JSON.parse(saved) : SAMPLE_TASKS;
   });
-  const [filter, setFilter] = useState('today'); // Changed default from 'all' to 'today'
+  const [filter, setFilter] = useState('today'); 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   
@@ -909,17 +960,19 @@ const App = () => {
   }, [tasks]);
 
   return (
-    <div className={`min-h-screen transition-colors duration-200 ${darkMode ? 'dark bg-slate-900' : 'bg-slate-50'}`}>
+    <div className={`min-h-screen transition-colors duration-200 ${darkMode ? 'dark bg-slate-950' : 'bg-slate-50'}`}>
       <div className="flex min-h-screen font-sans text-slate-900 dark:text-slate-100 selection:bg-indigo-100 dark:selection:bg-indigo-900/50 selection:text-indigo-900 dark:selection:text-indigo-100">
         
         {/* Mobile Header */}
-        <div className="md:hidden fixed top-0 w-full bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 z-30 px-4 py-3 flex justify-between items-center transition-colors duration-200">
+        <div className="md:hidden fixed top-0 w-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 z-30 px-4 py-3 flex justify-between items-center transition-colors duration-200">
            <div className="flex items-center gap-2 font-bold text-indigo-600 dark:text-indigo-400">
-             <Layout size={24} />
-             <span>TaskFlow</span>
+             <div className="bg-indigo-600 text-white p-1 rounded-md">
+                <Layout size={18} fill="currentColor" />
+             </div>
+             <span className="text-slate-900 dark:text-white tracking-tight">TaskFlow</span>
            </div>
            <div className="flex items-center gap-2">
-             <button onClick={toggleTheme} className="p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors">
+             <button onClick={toggleTheme} className="p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors">
                {darkMode ? <Sun size={20} /> : <Moon size={20} />}
              </button>
              <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 text-slate-600 dark:text-slate-400">
@@ -930,19 +983,21 @@ const App = () => {
   
         {/* Sidebar */}
         <aside className={`
-          fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 transform transition-transform duration-300 ease-in-out flex flex-col
+          fixed inset-y-0 left-0 z-40 w-72 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transform transition-transform duration-300 ease-in-out flex flex-col shadow-2xl md:shadow-none
           ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
           md:relative md:translate-x-0
         `}>
           <div className="p-6">
-            <div className="flex items-center justify-between mb-8">
-              <div className="flex items-center gap-2 font-bold text-2xl text-indigo-600 dark:text-indigo-400">
-                <Layout className="fill-indigo-600 dark:fill-indigo-400" />
+            <div className="flex items-center justify-between mb-8 pl-2">
+              <div className="flex items-center gap-3 font-bold text-2xl text-slate-900 dark:text-white tracking-tight">
+                <div className="bg-indigo-600 text-white p-1.5 rounded-lg shadow-lg shadow-indigo-600/30">
+                   <Layout size={22} fill="currentColor" />
+                </div>
                 <span>TaskFlow</span>
               </div>
               <button 
                 onClick={toggleTheme} 
-                className="hidden md:block p-2 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors"
+                className="hidden md:flex p-2 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
                 title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
               >
                 {darkMode ? <Sun size={18} /> : <Moon size={18} />}
@@ -951,12 +1006,14 @@ const App = () => {
   
             <button 
               onClick={() => setIsModalOpen(true)}
-              className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-600 dark:hover:bg-indigo-500 text-white py-3 px-4 rounded-xl shadow-lg shadow-indigo-200 dark:shadow-none transition-all transform active:scale-95 font-medium mb-8"
+              className="group w-full flex items-center justify-center gap-2 bg-slate-900 hover:bg-indigo-600 dark:bg-white dark:hover:bg-indigo-50 dark:text-slate-900 dark:hover:text-indigo-600 text-white py-3.5 px-4 rounded-xl shadow-xl shadow-slate-900/10 dark:shadow-none transition-all duration-300 transform active:scale-95 font-semibold mb-8"
             >
-              <Plus size={20} /> New Task
+              <Plus size={18} className="group-hover:rotate-90 transition-transform duration-300" /> 
+              <span>New Task</span>
             </button>
   
-            <nav className="space-y-1">
+            <nav className="space-y-1.5">
+              <div className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3 px-4">Overview</div>
               {[
                 { id: 'all', label: 'All Tasks', icon: Layout, count: stats.total },
                 { id: 'today', label: 'Due Today', icon: Clock, count: stats.dueToday, highlight: true },
@@ -968,24 +1025,26 @@ const App = () => {
                 <button
                   key={item.id}
                   onClick={() => setFilter(item.id)}
-                  className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                  className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group ${
                     filter === item.id 
-                      ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300' 
-                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-slate-200'
+                      ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 shadow-sm' 
+                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-slate-200'
                   }`}
                 >
-                  <div className="flex items-center gap-3">
-                    <item.icon size={18} className={
-                      item.alert && item.count > 0 ? 'text-red-500 dark:text-red-400' : 
-                      item.highlight && item.count > 0 ? 'text-amber-500 dark:text-amber-400' : ''
-                    } />
+                  <div className="flex items-center gap-3.5">
+                    <item.icon size={18} className={`transition-colors ${
+                      filter === item.id ? 'text-indigo-600 dark:text-indigo-400' :
+                      item.alert && item.count > 0 ? 'text-rose-500 dark:text-rose-400' : 
+                      item.highlight && item.count > 0 ? 'text-amber-500 dark:text-amber-400' : 
+                      'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300'
+                    }`} />
                     <span>{item.label}</span>
                   </div>
                   {item.count > 0 && (
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${
-                      item.alert ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400' : 
+                    <span className={`text-[11px] font-bold px-2 py-0.5 rounded-md transition-colors ${
+                      item.alert ? 'bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400' : 
                       item.highlight ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' : 
-                      filter === item.id ? 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-300' : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
+                      filter === item.id ? 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-300' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-slate-200 dark:group-hover:bg-slate-700'
                     }`}>
                       {item.count}
                     </span>
@@ -995,25 +1054,29 @@ const App = () => {
             </nav>
           </div>
   
-          <div className="mt-auto p-6 border-t border-slate-100 dark:border-slate-700">
-             <h4 className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-4">Daily Snapshot</h4>
+          <div className="mt-auto p-6 m-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">
+             <div className="flex items-center justify-between mb-4">
+                <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Productivity</h4>
+                <TrendingUp size={14} className="text-emerald-500" />
+             </div>
+             
              <div className="space-y-4">
                <div>
-                 <div className="flex justify-between text-sm mb-1">
+                 <div className="flex justify-between text-xs font-medium mb-1.5">
                    <span className="text-slate-600 dark:text-slate-400">Due Today</span>
-                   <span className="font-bold text-slate-900 dark:text-slate-200">{stats.dueToday}</span>
+                   <span className="text-slate-900 dark:text-slate-200">{stats.dueToday}</span>
                  </div>
-                 <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-1.5">
-                   <div className="bg-amber-500 h-1.5 rounded-full" style={{ width: `${Math.min((stats.dueToday / (stats.total || 1)) * 100, 100)}%` }}></div>
+                 <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-1.5 overflow-hidden">
+                   <div className="bg-amber-500 h-1.5 rounded-full shadow-[0_0_10px_rgba(245,158,11,0.5)]" style={{ width: `${Math.min((stats.dueToday / (stats.total || 1)) * 100, 100)}%` }}></div>
                  </div>
                </div>
                <div>
-                 <div className="flex justify-between text-sm mb-1">
+                 <div className="flex justify-between text-xs font-medium mb-1.5">
                    <span className="text-slate-600 dark:text-slate-400">Completion</span>
-                   <span className="font-bold text-slate-900 dark:text-slate-200">{Math.round((stats.completed / (stats.total || 1)) * 100)}%</span>
+                   <span className="text-slate-900 dark:text-slate-200">{Math.round((stats.completed / (stats.total || 1)) * 100)}%</span>
                  </div>
-                 <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-1.5">
-                   <div className="bg-emerald-500 h-1.5 rounded-full" style={{ width: `${(stats.completed / (stats.total || 1)) * 100}%` }}></div>
+                 <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-1.5 overflow-hidden">
+                   <div className="bg-emerald-500 h-1.5 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]" style={{ width: `${(stats.completed / (stats.total || 1)) * 100}%` }}></div>
                  </div>
                </div>
              </div>
@@ -1021,67 +1084,83 @@ const App = () => {
         </aside>
   
         {/* Main Content */}
-        <main className="flex-1 flex flex-col h-screen overflow-hidden pt-16 md:pt-0 bg-slate-50 dark:bg-slate-900 transition-colors duration-200">
-          <header className="flex-shrink-0 px-8 py-6 bg-white dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700 flex justify-between items-end transition-colors duration-200">
+        <main className="flex-1 flex flex-col h-screen overflow-hidden bg-slate-50/50 dark:bg-slate-950 transition-colors duration-200 relative">
+           {/* Subtle background decoration */}
+           <div className="absolute top-0 left-0 right-0 h-64 bg-gradient-to-b from-white to-transparent dark:from-slate-900 pointer-events-none opacity-60"></div>
+
+          <header className="flex-shrink-0 px-8 py-6 flex justify-between items-end z-10 sticky top-0 bg-slate-50/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-transparent transition-all duration-200">
             <div>
-              <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+              <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
                 {filter === 'all' ? 'All Tasks' : 
                  filter === 'active' ? 'Active Tasks' :
-                 filter === 'today' ? "Today's Tasks" :
+                 filter === 'today' ? "Today's Focus" :
                  filter === 'overdue' ? 'Overdue Tasks' :
                  filter === 'recurring' ? 'Recurring Tasks' :
                  filter === 'completed' ? 'Completed Tasks' :
                  filter.charAt(0).toUpperCase() + filter.slice(1)}
               </h1>
-              <p className="text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-2 text-sm">
-                <Calendar size={14} />
+              <p className="text-slate-500 dark:text-slate-400 mt-1.5 flex items-center gap-2 text-sm font-medium">
+                <Calendar size={15} className="text-indigo-500" />
                 {format(new Date(), 'EEEE, MMMM do, yyyy')}
               </p>
             </div>
-            <div className="flex gap-2">
-              {/* Sort/View Options could go here */}
+            
+            <div className="flex gap-3">
+              <button className="p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 hover:shadow-md transition-all">
+                <Filter size={18} />
+              </button>
+              <button className="p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 hover:shadow-md transition-all relative">
+                <Bell size={18} />
+                {stats.overdue > 0 && <span className="absolute top-2 right-2.5 w-2 h-2 bg-rose-500 rounded-full border border-white dark:border-slate-900"></span>}
+              </button>
             </div>
           </header>
   
-          <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
-            <div className="max-w-4xl mx-auto">
+          <div className="flex-1 overflow-y-auto px-4 md:px-8 pb-10 custom-scrollbar z-0">
+            <div className="max-w-4xl mx-auto pt-6">
               {stats.overdue > 0 && filter !== 'completed' && filter !== 'overdue' && (
-                <div className="mb-6 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 rounded-xl p-4 flex items-start gap-3">
-                  <AlertCircle className="text-red-500 dark:text-red-400 mt-0.5" size={20} />
+                <div className="mb-8 bg-rose-50/80 dark:bg-rose-950/30 border border-rose-100 dark:border-rose-900/50 rounded-2xl p-4 flex items-start gap-4 shadow-sm backdrop-blur-sm">
+                  <div className="bg-rose-100 dark:bg-rose-900/50 p-2 rounded-xl text-rose-600 dark:text-rose-400">
+                    <AlertCircle size={22} />
+                  </div>
                   <div>
-                    <h4 className="font-semibold text-red-700 dark:text-red-400">You have {stats.overdue} overdue task{stats.overdue > 1 ? 's' : ''}</h4>
-                    <p className="text-sm text-red-600 dark:text-red-300 mt-1">Check your list and reschedule if necessary.</p>
+                    <h4 className="font-bold text-rose-700 dark:text-rose-400">You have {stats.overdue} overdue task{stats.overdue > 1 ? 's' : ''}</h4>
+                    <p className="text-sm text-rose-600/90 dark:text-rose-300/80 mt-1 font-medium">Review your timeline and reschedule if necessary.</p>
                   </div>
                 </div>
               )}
 
               {filter === 'today' && stats.dueToday === 0 && (
-                <div className="mb-6 bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/30 rounded-xl p-4 flex items-start gap-3">
-                  <CheckCircle2 className="text-amber-500 dark:text-amber-400 mt-0.5" size={20} />
+                <div className="mb-8 bg-emerald-50/80 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/50 rounded-2xl p-4 flex items-start gap-4 shadow-sm backdrop-blur-sm">
+                  <div className="bg-emerald-100 dark:bg-emerald-900/50 p-2 rounded-xl text-emerald-600 dark:text-emerald-400">
+                    <CheckCircle2 size={22} />
+                  </div>
                   <div>
-                    <h4 className="font-semibold text-amber-700 dark:text-amber-400">No tasks due today</h4>
-                    <p className="text-sm text-amber-600 dark:text-amber-300 mt-1">You're all caught up! Add new tasks or check upcoming tasks.</p>
+                    <h4 className="font-bold text-emerald-700 dark:text-emerald-400">All caught up for today!</h4>
+                    <p className="text-sm text-emerald-600/90 dark:text-emerald-300/80 mt-1 font-medium">Great job keeping up. Take a break or plan ahead.</p>
                   </div>
                 </div>
               )}
   
               {filteredTasks.length === 0 ? (
-                <div className="text-center py-20 opacity-60">
-                  <div className="bg-slate-100 dark:bg-slate-800 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <ListTodo size={40} className="text-slate-400 dark:text-slate-500" />
+                <div className="flex flex-col items-center justify-center py-20 opacity-80 animate-in fade-in duration-500">
+                  <div className="bg-white dark:bg-slate-900 w-32 h-32 rounded-3xl flex items-center justify-center mb-6 shadow-xl shadow-slate-200/50 dark:shadow-none ring-1 ring-slate-100 dark:ring-slate-800">
+                    <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl">
+                       <ListTodo size={48} className="text-indigo-400/80" />
+                    </div>
                   </div>
-                  <h3 className="text-xl font-semibold text-slate-700 dark:text-slate-300">No tasks found</h3>
-                  <p className="text-slate-500 dark:text-slate-400">
-                    {filter === 'today' ? "You have no tasks due today." : 
-                     filter === 'overdue' ? "No overdue tasks. Great job!" :
+                  <h3 className="text-2xl font-bold text-slate-800 dark:text-white tracking-tight">No tasks found</h3>
+                  <p className="text-slate-500 dark:text-slate-400 mt-2 text-center max-w-xs font-medium">
+                    {filter === 'today' ? "Your schedule is clear for today." : 
+                     filter === 'overdue' ? "No overdue tasks. You're on track!" :
                      filter === 'completed' ? "No completed tasks yet." :
-                     "You're all caught up or haven't added any tasks yet."}
+                     "You're all caught up! Start by adding a new task to your list."}
                   </p>
                   <button 
                     onClick={() => setIsModalOpen(true)}
-                    className="mt-6 text-indigo-600 dark:text-indigo-400 font-medium hover:underline"
+                    className="mt-8 text-white bg-indigo-600 hover:bg-indigo-700 px-6 py-3 rounded-xl font-semibold shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/40 transition-all hover:-translate-y-1"
                   >
-                    Create a new task
+                    Create your first task
                   </button>
                 </div>
               ) : (
@@ -1110,7 +1189,7 @@ const App = () => {
         {/* Overlay for mobile sidebar */}
         {isSidebarOpen && (
           <div 
-            className="fixed inset-0 bg-black/20 z-30 md:hidden backdrop-blur-sm"
+            className="fixed inset-0 bg-slate-900/40 z-30 md:hidden backdrop-blur-sm transition-opacity"
             onClick={() => setIsSidebarOpen(false)}
           />
         )}
