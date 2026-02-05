@@ -1157,7 +1157,7 @@ const App = () => {
            {/* Subtle background decoration */}
            <div className="absolute top-0 left-0 right-0 h-64 bg-gradient-to-b from-white to-transparent dark:from-slate-900 pointer-events-none opacity-60"></div>
 
-          <header className="flex-shrink-0 px-8 py-6 flex justify-between items-end z-10 sticky top-16 md:top-0 bg-slate-50/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-transparent transition-all duration-200 md:pt-6 pt-20">
+          <header className="flex-shrink-0 px-8 py-6 flex justify-between items-end z-10 sticky top-16 md:top-0 bg-slate-50/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-transparent transition-all duration-200 md:pt-6 pt-5">
             <div>
               <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
                 {filter === 'all' ? 'All Tasks' : 
