@@ -354,8 +354,8 @@ const FilterModal = ({ isOpen, onClose, currentFilter, onFilterChange, categorie
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
-      <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-md shadow-2xl shadow-slate-900/20 overflow-hidden animate-in zoom-in-95 duration-300">
-        <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-md shadow-2xl shadow-slate-900/20 overflow-hidden animate-in zoom-in-95 duration-300 max-h-[90vh] flex flex-col">
+        <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center flex-shrink-0">
           <h2 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2.5">
             <Filter size={20} className="text-indigo-500" />
             Advanced Filters
@@ -365,7 +365,7 @@ const FilterModal = ({ isOpen, onClose, currentFilter, onFilterChange, categorie
           </button>
         </div>
         
-        <div className="p-6 space-y-6">
+        <div className="p-6 space-y-6 overflow-y-auto flex-1">
           <div>
             <h3 className="text-sm font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-3">Date Range</h3>
             <div className="grid grid-cols-2 gap-2">
@@ -462,7 +462,7 @@ const FilterModal = ({ isOpen, onClose, currentFilter, onFilterChange, categorie
           </div>
         </div>
         
-        <div className="p-5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 flex justify-between">
+        <div className="p-5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-md flex justify-between flex-shrink-0">
           <button 
             onClick={handleReset}
             className="px-5 py-2.5 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-800 rounded-xl transition-colors"
@@ -984,16 +984,17 @@ const TaskItem = ({ task, onUpdate, onDelete, onCompleteRecurring, onUndoRecurri
 
   return (
     <div 
-      className={`group relative bg-white dark:bg-slate-900 rounded-2xl border transition-all duration-300 mb-4 ${
+      className={`group relative bg-white dark:bg-slate-900 rounded-2xl border transition-all duration-300 mb-4 overflow-hidden ${
         task.completed 
           ? 'opacity-75 border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50' 
           : 'hover:shadow-lg hover:shadow-slate-200/50 dark:hover:shadow-none border-slate-200 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-slate-700 hover:-translate-y-0.5'
       }`}
+      style={{ overflow: 'visible' }}
     >
-      {/* Side Status Indicator */}
-      <div className={`absolute left-0 top-0 bottom-0 w-1.5 transition-colors duration-300
-        ${isOverdue ? 'bg-rose-500' : isDueToday ? 'bg-amber-500' : task.priority === 'high' ? 'bg-indigo-500' : 'bg-transparent group-hover:bg-indigo-500/30'}
-      `} />
+      {/* Side Status Indicator - Fixed border radius masking */}
+      <div className={`absolute left-0 top-0 bottom-0 w-1.5 transition-colors duration-300 ${
+        isOverdue ? 'bg-rose-500' : isDueToday ? 'bg-amber-500' : task.priority === 'high' ? 'bg-indigo-500' : 'bg-transparent group-hover:bg-indigo-500/30'
+      } rounded-l-2xl`} />
 
       <div className="p-5 pl-7 flex gap-5 items-start cursor-pointer" onClick={() => setIsExpanded(!isExpanded)}>
         {/* Checkbox / Complete Button */}
@@ -1126,9 +1127,9 @@ const AddTaskModal = ({ isOpen, onClose, onAdd }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
-      <div className="bg-white dark:bg-slate-900 w-full max-w-lg md:rounded-2xl rounded-t-2xl shadow-2xl shadow-slate-900/20 overflow-hidden animate-in zoom-in-95 duration-300 flex flex-col max-h-[90vh] ring-1 ring-white/10">
-        <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl sticky top-0 z-10">
+    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+      <div className="bg-white dark:bg-slate-900 w-full md:max-w-lg md:rounded-2xl rounded-t-2xl shadow-2xl shadow-slate-900/20 overflow-hidden animate-in slide-in-from-bottom-10 md:zoom-in-95 duration-300 flex flex-col max-h-[90vh] md:max-h-[85vh] ring-1 ring-white/10">
+        <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl sticky top-0 z-10 flex-shrink-0">
           <h2 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2.5">
             <div className="bg-indigo-100 dark:bg-indigo-900/50 p-1.5 rounded-lg text-indigo-600 dark:text-indigo-400">
               <Plus size={20} />
@@ -1289,8 +1290,6 @@ const App = () => {
     const saved = localStorage.getItem('theme');
     return saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
   });
-
-  const sidebarRef = useRef(null);
 
   useEffect(() => {
     localStorage.setItem('tasks', JSON.stringify(tasks));
@@ -1497,53 +1496,48 @@ const App = () => {
         </div>
   
         {/* Sidebar */}
-        <aside 
-          ref={sidebarRef}
-          className={`
-            fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transform transition-transform duration-300 ease-in-out flex flex-col shadow-2xl md:shadow-none overflow-hidden
-            ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-            md:relative md:translate-x-0
-          `}
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* Sidebar Header - Fixed */}
-          <div className="p-6 pb-0 flex-shrink-0">
-            <div className="flex items-center justify-between mb-8 pl-2">
-              <div className="flex items-center gap-3 font-bold text-2xl text-slate-900 dark:text-white tracking-tight">
-                <div className="bg-indigo-600 text-white p-1.5 rounded-lg shadow-lg shadow-indigo-600/30">
-                   <Layout size={22} fill="currentColor" />
+        <aside className={`
+          fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transform transition-transform duration-300 ease-in-out flex flex-col shadow-2xl md:shadow-none overflow-hidden
+          ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+          md:relative md:translate-x-0
+        `}>
+          {/* Fixed Sidebar Header */}
+          <div className="flex-shrink-0">
+            <div className="p-6 pb-0">
+              <div className="flex items-center justify-between mb-8 pl-2">
+                <div className="flex items-center gap-3 font-bold text-2xl text-slate-900 dark:text-white tracking-tight">
+                  <div className="bg-indigo-600 text-white p-1.5 rounded-lg shadow-lg shadow-indigo-600/30">
+                     <Layout size={22} fill="currentColor" />
+                  </div>
+                  <span>CarryOut</span>
                 </div>
-                <span>CarryOut</span>
+                <button 
+                  onClick={() => setIsSidebarOpen(false)} 
+                  className="md:hidden p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                >
+                  <X size={24} />
+                </button>
+                <button 
+                  onClick={toggleTheme} 
+                  className="hidden md:flex p-2 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
+                  title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+                >
+                  {darkMode ? <Sun size={18} /> : <Moon size={18} />}
+                </button>
               </div>
+    
               <button 
-                onClick={() => setIsSidebarOpen(false)} 
-                className="md:hidden p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                onClick={() => { setIsModalOpen(true); setIsSidebarOpen(false); }}
+                className="group w-full flex items-center justify-center gap-2 bg-slate-900 hover:bg-indigo-600 dark:bg-white dark:hover:bg-indigo-50 dark:text-slate-900 dark:hover:text-indigo-600 text-white py-3.5 px-4 rounded-xl shadow-xl shadow-slate-900/10 dark:shadow-none transition-all duration-300 transform active:scale-95 font-semibold mb-8"
               >
-                <X size={24} />
-              </button>
-              <button 
-                onClick={toggleTheme} 
-                className="hidden md:flex p-2 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
-                title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
-              >
-                {darkMode ? <Sun size={18} /> : <Moon size={18} />}
+                <Plus size={18} className="group-hover:rotate-90 transition-transform duration-300" /> 
+                <span>New Task</span>
               </button>
             </div>
-  
-            <button 
-              onClick={() => { setIsModalOpen(true); setIsSidebarOpen(false); }}
-              className="group w-full flex items-center justify-center gap-2 bg-slate-900 hover:bg-indigo-600 dark:bg-white dark:hover:bg-indigo-50 dark:text-slate-900 dark:hover:text-indigo-600 text-white py-3.5 px-4 rounded-xl shadow-xl shadow-slate-900/10 dark:shadow-none transition-all duration-300 transform active:scale-95 font-semibold mb-8"
-            >
-              <Plus size={18} className="group-hover:rotate-90 transition-transform duration-300" /> 
-              <span>New Task</span>
-            </button>
           </div>
 
           {/* Scrollable Sidebar Content */}
-          <div 
-            className="flex-1 overflow-y-auto custom-scrollbar px-6 pt-4"
-            onScroll={(e) => e.stopPropagation()}
-          >
+          <div className="flex-1 overflow-y-auto custom-scrollbar px-6 pt-4">
             <nav className="space-y-1.5">
               <div className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3 px-4">Overview</div>
               {[
@@ -1585,7 +1579,7 @@ const App = () => {
               ))}
             </nav>
 
-            <div className="mt-8 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">
+            <div className="mt-8 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 mb-6">
                <div className="flex items-center justify-between mb-4">
                   <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Productivity</h4>
                   <TrendingUp size={14} className="text-emerald-500" />
@@ -1616,11 +1610,11 @@ const App = () => {
         </aside>
   
         {/* Main Content */}
-        <main className="flex-1 flex flex-col h-screen overflow-hidden bg-slate-50/50 dark:bg-slate-950 transition-colors duration-200 relative pt-16 md:pt-0">
+        <main className="flex-1 flex flex-col h-screen overflow-hidden bg-slate-50/50 dark:bg-slate-950 transition-colors duration-200 relative pt-14 md:pt-0">
            {/* Subtle background decoration */}
            <div className="absolute top-0 left-0 right-0 h-64 bg-gradient-to-b from-white to-transparent dark:from-slate-900 pointer-events-none opacity-60"></div>
 
-          <header className="flex-shrink-0 px-4 md:px-8 py-4 md:py-6 flex justify-between items-end z-10 sticky top-0 md:top-0 bg-slate-50/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-transparent transition-all duration-200">
+          <header className="flex-shrink-0 px-4 md:px-8 py-4 md:py-6 flex justify-between items-end z-10 sticky top-0 md:top-0 bg-slate-50/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-transparent transition-all duration-200 md:mt-0 mt-14">
             <div>
               <h1 className="text-xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
                 {filter === 'all' ? 'All Tasks' : 
