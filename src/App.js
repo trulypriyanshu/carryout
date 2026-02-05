@@ -1618,7 +1618,7 @@ const App = () => {
         </aside>
   
         {/* Main Content */}
-        <main className="flex-0 flex flex-col h-screen overflow-hidden bg-slate-50/50 dark:bg-slate-950 transition-colors duration-200 relative pt-14 md:pt-0">
+        <main className="flex-1 flex flex-col h-screen overflow-hidden bg-slate-50/50 dark:bg-slate-950 transition-colors duration-200 relative pt-14 md:pt-0">
            {/* Subtle background decoration */}
            <div className="absolute top-0 left-0 right-0 h-64 bg-gradient-to-b from-white to-transparent dark:from-slate-900 pointer-events-none opacity-60"></div>
 
