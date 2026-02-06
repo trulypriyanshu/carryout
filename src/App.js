@@ -1254,7 +1254,7 @@ const AddTaskModal = ({ isOpen, onClose, onAdd }) => {
           </form>
         </div>
         
-        <div className="p-5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-md flex justify-end gap-3 flex-shrink-0 safe-area-bottom">
+        <div className="p-5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-md flex justify-end gap-3 flex-shrink-0">
           <button 
             onClick={onClose}
             className="px-5 py-2.5 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-800 rounded-xl transition-colors"
