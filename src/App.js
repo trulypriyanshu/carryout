@@ -10,7 +10,7 @@ import {
 import { 
   format, addDays, addWeeks, addMonths, addYears, 
   isAfter, isSameDay, parseISO, startOfDay, isBefore, isToday,
-  isTomorrow, isYesterday, differenceInDays
+  isTomorrow, isYesterday, differenceInDays, getDay
 } from 'date-fns';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -295,7 +295,7 @@ const SettingsModal = ({ isOpen, onClose, onClearData, darkMode }) => {
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-slate-600 dark:text-slate-400">Version</span>
-                  <span className="font-medium text-slate-800 dark:text-slate-200">1.1.0</span>
+                  <span className="font-medium text-slate-800 dark:text-slate-200">1.2.0</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-600 dark:text-slate-400">Theme</span>
@@ -743,17 +743,122 @@ const Checklist = ({ checklist, onUpdate, isEditingMode = false, showProgressBar
   );
 };
 
-const RecurrenceSettings = ({ recurrence, pattern, onChangeRecurrence, onChangePattern, dueDate }) => {
+const RecurrenceSettings = ({ recurrence, pattern, onChangeRecurrence, onChangePattern, dueDate, onDueDateChange }) => {
   const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   
-  // Auto-detect the day from due date if no days are selected
+  // Get day name from date
+  const getDayNameFromDate = (dateString) => {
+    const date = parseISO(dateString);
+    return date.toLocaleDateString('en-US', { weekday: 'long' });
+  };
+
+  // Auto-detect the day from due date when dueDate changes
   useEffect(() => {
-    if (recurrence === 'weekly' && (!pattern.daysOfWeek || pattern.daysOfWeek.length === 0) && dueDate) {
-      const date = parseISO(dueDate);
-      const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
-      onChangePattern({ ...pattern, daysOfWeek: [dayName] });
+    if (recurrence === 'weekly' && dueDate) {
+      const dayName = getDayNameFromDate(dueDate);
+      const currentDays = pattern.daysOfWeek || [];
+      
+      // If no days are selected, auto-select the due date's day
+      if (currentDays.length === 0) {
+        onChangePattern({ ...pattern, daysOfWeek: [dayName] });
+      }
     }
-  }, [recurrence, dueDate]);
+  }, [dueDate]);
+
+  // Handle day selection with validation
+  const handleDayToggle = (day) => {
+    const currentDays = pattern.daysOfWeek || [];
+    const interval = pattern.interval || 1;
+    
+    // Validation: Can't select more days than interval
+    if (!currentDays.includes(day) && currentDays.length >= interval) {
+      return; // Don't allow selection if already at limit
+    }
+    
+    const newDays = currentDays.includes(day)
+      ? currentDays.filter(d => d !== day)
+      : [...currentDays, day];
+    
+    onChangePattern({ ...pattern, daysOfWeek: newDays });
+    
+    // If the due date's day was deselected, update due date to first selected day
+    if (dueDate && !newDays.includes(getDayNameFromDate(dueDate)) && newDays.length > 0) {
+      // Find next occurrence of first selected day
+      const nextDate = calculateNextDateForDay(newDays[0]);
+      if (nextDate && onDueDateChange) {
+        onDueDateChange(nextDate);
+      }
+    }
+  };
+
+  // Calculate next date for a specific day
+  const calculateNextDateForDay = (dayName) => {
+    const today = new Date();
+    const daysMap = {
+      'Sunday': 0, 'Monday': 1, 'Tuesday': 2, 'Wednesday': 3,
+      'Thursday': 4, 'Friday': 5, 'Saturday': 6
+    };
+    
+    const targetDay = daysMap[dayName];
+    const currentDay = today.getDay();
+    let daysToAdd = targetDay - currentDay;
+    
+    if (daysToAdd <= 0) {
+      daysToAdd += 7;
+    }
+    
+    const nextDate = addDays(today, daysToAdd);
+    return nextDate.toISOString().split('T')[0];
+  };
+
+  // Handle interval change with validation
+  const handleIntervalChange = (newInterval) => {
+    const currentDays = pattern.daysOfWeek || [];
+    const validatedInterval = Math.max(1, newInterval);
+    
+    // If we're reducing interval, we need to limit selected days
+    let validatedDays = [...currentDays];
+    if (validatedDays.length > validatedInterval) {
+      // Keep only first N days based on new interval
+      validatedDays = validatedDays.slice(0, validatedInterval);
+      
+      // If due date's day was removed, update due date
+      if (dueDate && !validatedDays.includes(getDayNameFromDate(dueDate)) && validatedDays.length > 0) {
+        const nextDate = calculateNextDateForDay(validatedDays[0]);
+        if (nextDate && onDueDateChange) {
+          onDueDateChange(nextDate);
+        }
+      }
+    }
+    
+    onChangePattern({ ...pattern, interval: validatedInterval, daysOfWeek: validatedDays });
+  };
+
+  // Handle due date change with validation
+  const handleDueDateChange = (newDueDate) => {
+    if (onDueDateChange) {
+      onDueDateChange(newDueDate);
+    }
+    
+    // Auto-update selected days if it's a weekly recurrence
+    if (recurrence === 'weekly') {
+      const dayName = getDayNameFromDate(newDueDate);
+      const currentDays = pattern.daysOfWeek || [];
+      
+      // If due date day is not in selected days, add it (respecting interval limit)
+      if (!currentDays.includes(dayName)) {
+        if (currentDays.length < (pattern.interval || 1)) {
+          onChangePattern({ ...pattern, daysOfWeek: [...currentDays, dayName] });
+        } else {
+          // Replace the first day with the new one
+          const newDays = [dayName, ...currentDays.slice(1)];
+          onChangePattern({ ...pattern, daysOfWeek: newDays });
+        }
+      }
+    }
+  };
+
+  const maxSelectableDays = pattern.interval || 1;
 
   return (
     <div className="p-5 bg-slate-50/50 dark:bg-slate-800/50 rounded-xl border border-slate-200/60 dark:border-slate-700/60 mt-6 space-y-5">
@@ -788,42 +893,59 @@ const RecurrenceSettings = ({ recurrence, pattern, onChangeRecurrence, onChangeP
                 type="number"
                 min="1"
                 value={pattern.interval || 1}
-                onChange={(e) => onChangePattern({ ...pattern, interval: parseInt(e.target.value) || 1 })}
+                onChange={(e) => handleIntervalChange(parseInt(e.target.value) || 1)}
                 className="w-20 text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 dark:text-slate-200 transition-all"
               />
               <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
                 {recurrence === 'daily' ? 'day(s)' : recurrence === 'weekly' ? 'week(s)' : recurrence === 'monthly' ? 'month(s)' : 'year(s)'}
               </span>
             </div>
+            {recurrence === 'weekly' && (
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                Maximum {pattern.interval || 1} day{pattern.interval !== 1 ? 's' : ''} can be selected
+              </p>
+            )}
           </div>
         )}
       </div>
 
       {recurrence === 'weekly' && (
         <div>
-          <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2">Repeat On</label>
+          <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2">
+            Repeat On {pattern.daysOfWeek?.length > 0 && `(${pattern.daysOfWeek.length}/${maxSelectableDays})`}
+          </label>
           <div className="flex flex-wrap gap-2">
-            {daysOfWeek.map(day => (
-              <button
-                key={day}
-                type="button"
-                onClick={() => {
-                  const currentDays = pattern.daysOfWeek || [];
-                  const newDays = currentDays.includes(day)
-                    ? currentDays.filter(d => d !== day)
-                    : [...currentDays, day];
-                  onChangePattern({ ...pattern, daysOfWeek: newDays });
-                }}
-                className={`px-3 py-2 text-xs font-medium rounded-lg border transition-all duration-200 ${
-                  pattern.daysOfWeek?.includes(day)
-                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
-                    : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-slate-600'
-                }`}
-              >
-                {day.substring(0, 3)}
-              </button>
-            ))}
+            {daysOfWeek.map(day => {
+              const isSelected = pattern.daysOfWeek?.includes(day);
+              const isDisabled = !isSelected && (pattern.daysOfWeek?.length || 0) >= maxSelectableDays;
+              const isDueDateDay = dueDate && getDayNameFromDate(dueDate) === day;
+              
+              return (
+                <button
+                  key={day}
+                  type="button"
+                  onClick={() => !isDisabled && handleDayToggle(day)}
+                  disabled={isDisabled}
+                  className={`px-3 py-2 text-xs font-medium rounded-lg border transition-all duration-200 ${
+                    isSelected
+                      ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                      : isDisabled
+                      ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 border-slate-200 dark:border-slate-700 cursor-not-allowed'
+                      : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-slate-600'
+                  } ${isDueDateDay ? 'ring-1 ring-offset-1 ring-indigo-400' : ''}`}
+                  title={isDueDateDay ? `Due date (${day})` : day}
+                >
+                  {day.substring(0, 3)}
+                  {isDueDateDay && <span className="ml-1 text-[10px]">*</span>}
+                </button>
+              );
+            })}
           </div>
+          {dueDate && (
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+              <span className="text-indigo-600 dark:text-indigo-400">*</span> Due date falls on {getDayNameFromDate(dueDate)}
+            </p>
+          )}
         </div>
       )}
 
@@ -875,6 +997,10 @@ const TaskItem = ({ task, onUpdate, onDelete, onCompleteRecurring, onUndoRecurri
   const handleSave = () => {
     onUpdate(task.id, editedTask);
     setIsEditing(false);
+  };
+
+  const handleDueDateChange = (newDueDate) => {
+    setEditedTask({...editedTask, dueDate: newDueDate});
   };
 
   const isOverdue = !task.completed && isBefore(parseISO(task.dueDate), startOfDay(new Date()));
@@ -955,7 +1081,7 @@ const TaskItem = ({ task, onUpdate, onDelete, onCompleteRecurring, onUndoRecurri
               <input
                 type="date"
                 value={editedTask.dueDate}
-                onChange={(e) => setEditedTask({...editedTask, dueDate: e.target.value})}
+                onChange={(e) => handleDueDateChange(e.target.value)}
                 className="w-full text-sm border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer"
                 required
               />
@@ -992,6 +1118,7 @@ const TaskItem = ({ task, onUpdate, onDelete, onCompleteRecurring, onUndoRecurri
               onChangeRecurrence={(val) => setEditedTask({...editedTask, recurrence: val, recurrencePattern: val === 'none' ? null : (editedTask.recurrencePattern || { interval: 1, daysOfWeek: [] }) })}
               onChangePattern={(val) => setEditedTask({...editedTask, recurrencePattern: val})}
               dueDate={editedTask.dueDate}
+              onDueDateChange={handleDueDateChange}
             />
           )}
 
@@ -1173,6 +1300,10 @@ const AddTaskModal = ({ isOpen, onClose, onAdd, categories }) => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const handleDueDateChange = (newDueDate) => {
+    setTask({...task, dueDate: newDueDate});
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!validateForm()) return;
@@ -1319,7 +1450,7 @@ const AddTaskModal = ({ isOpen, onClose, onAdd, categories }) => {
                     errors.dueDate ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/20' : ''
                   }`}
                   value={task.dueDate}
-                  onChange={e => setTask({...task, dueDate: e.target.value})}
+                  onChange={(e) => handleDueDateChange(e.target.value)}
                   required
                 />
                 {errors.dueDate && <p className="mt-1 text-xs text-rose-600 dark:text-rose-400">{errors.dueDate}</p>}
@@ -1351,6 +1482,7 @@ const AddTaskModal = ({ isOpen, onClose, onAdd, categories }) => {
                   onChangeRecurrence={(val) => setTask({...task, recurrence: val})}
                   onChangePattern={(val) => setTask({...task, recurrencePattern: val})}
                   dueDate={task.dueDate}
+                  onDueDateChange={handleDueDateChange}
                 />
               </div>
             )}
