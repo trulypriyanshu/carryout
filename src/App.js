@@ -752,18 +752,30 @@ const RecurrenceSettings = ({ recurrence, pattern, onChangeRecurrence, onChangeP
     return date.toLocaleDateString('en-US', { weekday: 'long' });
   };
 
-  // Auto-detect the day from due date when dueDate changes
+  // Auto-detect and replace the day from due date when dueDate changes
   useEffect(() => {
     if (recurrence === 'weekly' && dueDate) {
       const dayName = getDayNameFromDate(dueDate);
       const currentDays = pattern.daysOfWeek || [];
       
-      // If no days are selected, auto-select the due date's day
-      if (currentDays.length === 0) {
-        onChangePattern({ ...pattern, daysOfWeek: [dayName] });
+      // Always replace selected days with the due date's day
+      // If interval allows multiple days, keep the due date day as first
+      const interval = pattern.interval || 1;
+      if (interval === 1) {
+        // Single day: replace with due date day
+        if (!currentDays.includes(dayName) || currentDays.length !== 1) {
+          onChangePattern({ ...pattern, daysOfWeek: [dayName] });
+        }
+      } else {
+        // Multiple days allowed: ensure due date day is included
+        if (!currentDays.includes(dayName)) {
+          // Add due date day and keep other days if within limit
+          const newDays = [dayName, ...currentDays.slice(0, interval - 1)];
+          onChangePattern({ ...pattern, daysOfWeek: newDays });
+        }
       }
     }
-  }, [dueDate]);
+  }, [dueDate, recurrence]);
 
   // Handle day selection with validation
   const handleDayToggle = (day) => {
@@ -782,7 +794,8 @@ const RecurrenceSettings = ({ recurrence, pattern, onChangeRecurrence, onChangeP
     onChangePattern({ ...pattern, daysOfWeek: newDays });
     
     // If the due date's day was deselected, update due date to first selected day
-    if (dueDate && !newDays.includes(getDayNameFromDate(dueDate)) && newDays.length > 0) {
+    const dueDateDay = dueDate ? getDayNameFromDate(dueDate) : null;
+    if (dueDateDay && !newDays.includes(dueDateDay) && newDays.length > 0) {
       // Find next occurrence of first selected day
       const nextDate = calculateNextDateForDay(newDays[0]);
       if (nextDate && onDueDateChange) {
@@ -823,7 +836,8 @@ const RecurrenceSettings = ({ recurrence, pattern, onChangeRecurrence, onChangeP
       validatedDays = validatedDays.slice(0, validatedInterval);
       
       // If due date's day was removed, update due date
-      if (dueDate && !validatedDays.includes(getDayNameFromDate(dueDate)) && validatedDays.length > 0) {
+      const dueDateDay = dueDate ? getDayNameFromDate(dueDate) : null;
+      if (dueDateDay && !validatedDays.includes(dueDateDay) && validatedDays.length > 0) {
         const nextDate = calculateNextDateForDay(validatedDays[0]);
         if (nextDate && onDueDateChange) {
           onDueDateChange(nextDate);
@@ -834,7 +848,7 @@ const RecurrenceSettings = ({ recurrence, pattern, onChangeRecurrence, onChangeP
     onChangePattern({ ...pattern, interval: validatedInterval, daysOfWeek: validatedDays });
   };
 
-  // Handle due date change with validation
+  // Handle due date change - always replace selected day with new due date day
   const handleDueDateChange = (newDueDate) => {
     if (onDueDateChange) {
       onDueDateChange(newDueDate);
@@ -844,14 +858,17 @@ const RecurrenceSettings = ({ recurrence, pattern, onChangeRecurrence, onChangeP
     if (recurrence === 'weekly') {
       const dayName = getDayNameFromDate(newDueDate);
       const currentDays = pattern.daysOfWeek || [];
+      const interval = pattern.interval || 1;
       
-      // If due date day is not in selected days, add it (respecting interval limit)
-      if (!currentDays.includes(dayName)) {
-        if (currentDays.length < (pattern.interval || 1)) {
-          onChangePattern({ ...pattern, daysOfWeek: [...currentDays, dayName] });
-        } else {
-          // Replace the first day with the new one
-          const newDays = [dayName, ...currentDays.slice(1)];
+      // Always replace with due date day (for single day interval)
+      // Or ensure due date day is included (for multi-day interval)
+      if (interval === 1) {
+        // Single day: replace selection
+        onChangePattern({ ...pattern, daysOfWeek: [dayName] });
+      } else {
+        // Multiple days: ensure due date day is included
+        if (!currentDays.includes(dayName)) {
+          const newDays = [dayName, ...currentDays.filter(d => d !== dayName).slice(0, interval - 1)];
           onChangePattern({ ...pattern, daysOfWeek: newDays });
         }
       }
@@ -859,6 +876,7 @@ const RecurrenceSettings = ({ recurrence, pattern, onChangeRecurrence, onChangeP
   };
 
   const maxSelectableDays = pattern.interval || 1;
+  const dueDateDay = dueDate ? getDayNameFromDate(dueDate) : null;
 
   return (
     <div className="p-5 bg-slate-50/50 dark:bg-slate-800/50 rounded-xl border border-slate-200/60 dark:border-slate-700/60 mt-6 space-y-5">
@@ -918,7 +936,7 @@ const RecurrenceSettings = ({ recurrence, pattern, onChangeRecurrence, onChangeP
             {daysOfWeek.map(day => {
               const isSelected = pattern.daysOfWeek?.includes(day);
               const isDisabled = !isSelected && (pattern.daysOfWeek?.length || 0) >= maxSelectableDays;
-              const isDueDateDay = dueDate && getDayNameFromDate(dueDate) === day;
+              const isDueDateDay = dueDateDay === day;
               
               return (
                 <button
@@ -928,12 +946,14 @@ const RecurrenceSettings = ({ recurrence, pattern, onChangeRecurrence, onChangeP
                   disabled={isDisabled}
                   className={`px-3 py-2 text-xs font-medium rounded-lg border transition-all duration-200 ${
                     isSelected
-                      ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                      ? isDueDateDay
+                        ? 'bg-indigo-700 text-white border-indigo-700 shadow-sm'
+                        : 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
                       : isDisabled
                       ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 border-slate-200 dark:border-slate-700 cursor-not-allowed'
                       : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-slate-600'
                   } ${isDueDateDay ? 'ring-1 ring-offset-1 ring-indigo-400' : ''}`}
-                  title={isDueDateDay ? `Due date (${day})` : day}
+                  title={isDueDateDay ? `Due date (${day}) - Click to deselect` : day}
                 >
                   {day.substring(0, 3)}
                   {isDueDateDay && <span className="ml-1 text-[10px]">*</span>}
@@ -941,9 +961,9 @@ const RecurrenceSettings = ({ recurrence, pattern, onChangeRecurrence, onChangeP
               );
             })}
           </div>
-          {dueDate && (
+          {dueDateDay && (
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
-              <span className="text-indigo-600 dark:text-indigo-400">*</span> Due date falls on {getDayNameFromDate(dueDate)}
+              <span className="text-indigo-600 dark:text-indigo-400">*</span> Due date: {dueDateDay} (auto-selected)
             </p>
           )}
         </div>
@@ -1264,7 +1284,7 @@ const TaskItem = ({ task, onUpdate, onDelete, onCompleteRecurring, onUndoRecurri
   );
 };
 
-const AddTaskModal = ({ isOpen, onClose, onAdd, categories }) => {
+const AddTaskModal = ({ isOpen, onClose, onAdd, categories, setCategories }) => {
   const [task, setTask] = useState({
     title: '', description: '', priority: 'medium', category: 'work',
     dueDate: new Date().toISOString().split('T')[0],
@@ -1319,13 +1339,34 @@ const AddTaskModal = ({ isOpen, onClose, onAdd, categories }) => {
   };
 
   const handleAddCategory = () => {
-    if (newCategory.trim() && !categories[newCategory.toLowerCase()]) {
-      const categoryKey = newCategory.toLowerCase();
-      const newCategories = { ...categories, [categoryKey]: 'bg-slate-50/80 text-slate-700 ring-1 ring-slate-600/20 dark:bg-slate-900/20 dark:text-slate-300 dark:ring-slate-500/30' };
+    if (newCategory.trim()) {
+      const categoryKey = newCategory.toLowerCase().trim();
       
-      // Save to localStorage
-      localStorage.setItem('customCategories', JSON.stringify(newCategories));
+      // Check if category already exists
+      if (!categories[categoryKey]) {
+        // Create a new category with a random color from a predefined set
+        const categoryColors = [
+          'bg-blue-50/80 text-blue-700 ring-1 ring-blue-600/20 dark:bg-blue-900/20 dark:text-blue-300 dark:ring-blue-500/30',
+          'bg-purple-50/80 text-purple-700 ring-1 ring-purple-600/20 dark:bg-purple-900/20 dark:text-purple-300 dark:ring-purple-500/30',
+          'bg-amber-50/80 text-amber-700 ring-1 ring-amber-600/20 dark:bg-amber-900/20 dark:text-amber-300 dark:ring-amber-500/30',
+          'bg-cyan-50/80 text-cyan-700 ring-1 ring-cyan-600/20 dark:bg-cyan-900/20 dark:text-cyan-300 dark:ring-cyan-500/30',
+          'bg-emerald-50/80 text-emerald-700 ring-1 ring-emerald-600/20 dark:bg-emerald-900/20 dark:text-emerald-300 dark:ring-emerald-500/30',
+          'bg-rose-50/80 text-rose-700 ring-1 ring-rose-600/20 dark:bg-rose-900/20 dark:text-rose-300 dark:ring-rose-500/30',
+          'bg-indigo-50/80 text-indigo-700 ring-1 ring-indigo-600/20 dark:bg-indigo-900/20 dark:text-indigo-300 dark:ring-indigo-500/30',
+          'bg-teal-50/80 text-teal-700 ring-1 ring-teal-600/20 dark:bg-teal-900/20 dark:text-teal-300 dark:ring-teal-500/30'
+        ];
+        
+        const randomColor = categoryColors[Math.floor(Math.random() * categoryColors.length)];
+        const newCategories = { ...categories, [categoryKey]: randomColor };
+        
+        // Update the categories state (this will trigger the useEffect in App)
+        setCategories(newCategories);
+        
+        // Save to localStorage
+        localStorage.setItem('customCategories', JSON.stringify(newCategories));
+      }
       
+      // Set the task category to the new category
       setTask({...task, category: categoryKey});
       setNewCategory('');
       setShowNewCategory(false);
@@ -1408,7 +1449,7 @@ const AddTaskModal = ({ isOpen, onClose, onAdd, categories }) => {
                       type="text"
                       value={newCategory}
                       onChange={(e) => setNewCategory(e.target.value)}
-                      placeholder="Category name"
+                      placeholder="Enter category name"
                       className="flex-1 text-sm border-slate-200 dark:border-slate-700 dark:bg-slate-800 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                       onKeyDown={(e) => e.key === 'Enter' && handleAddCategory()}
                     />
@@ -1416,10 +1457,16 @@ const AddTaskModal = ({ isOpen, onClose, onAdd, categories }) => {
                       type="button"
                       onClick={handleAddCategory}
                       className="px-3 py-1.5 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700 transition-colors"
+                      disabled={!newCategory.trim()}
                     >
                       Add
                     </button>
                   </div>
+                )}
+                {showNewCategory && (
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    New categories will be saved automatically
+                  </p>
                 )}
               </div>
               <div>
@@ -1544,7 +1591,7 @@ const App = () => {
     return saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
   });
 
-  // Categories state
+  // Categories state - with setter to pass to AddTaskModal
   const [categories, setCategories] = useState(() => {
     const savedCategories = localStorage.getItem('customCategories');
     return savedCategories ? JSON.parse(savedCategories) : DEFAULT_CATEGORIES;
@@ -2021,6 +2068,7 @@ const App = () => {
           onClose={() => setIsModalOpen(false)} 
           onAdd={addTask}
           categories={categories}
+          setCategories={setCategories}
         />
 
         <SettingsModal
