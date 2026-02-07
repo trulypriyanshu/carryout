@@ -5,7 +5,7 @@ import {
   Clock, TrendingUp, ListTodo, AlertCircle, Layout, 
   PieChart, Tag, ArrowRight, MoreHorizontal, Sun, Moon,
   Filter, Bell, Menu, Database, Eye, EyeOff, Tag as TagIcon,
-  Search, RefreshCw, User, Settings
+  Search, RefreshCw, User, Settings, Download
 } from 'lucide-react';
 import { 
   format, addDays, addWeeks, addMonths, addYears, 
@@ -551,10 +551,10 @@ const NotificationsModal = ({ isOpen, onClose, tasks, darkMode }) => {
                   key={notification.id}
                   className={`p-4 rounded-xl border transition-all ${
                     notification.type === 'overdue'
-                      ? 'bg-rose-50 dark:bg-rose-900/20 border-rose-100 dark:border-rose-900/30'
+                      ? 'bg-rose-50 dark:bg-rose-950/30 border-rose-100 dark:border-rose-900/50'
                       : notification.type === 'today'
-                      ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-900/30'
-                      : 'bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-900/30'
+                      ? 'bg-amber-50 dark:bg-amber-950/30 border-amber-100 dark:border-amber-900/50'
+                      : 'bg-blue-50 dark:bg-blue-950/30 border-blue-100 dark:border-blue-900/50'
                   }`}
                 >
                   <div className="flex justify-between items-start mb-2">
@@ -603,6 +603,87 @@ const NotificationsModal = ({ isOpen, onClose, tasks, darkMode }) => {
             className="px-6 py-2.5 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-800 rounded-xl transition-colors"
           >
             Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const InstallPromptModal = ({ isOpen, onClose, onInstall }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm animate-in fade-in duration-300">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-md shadow-2xl shadow-slate-900/20 overflow-hidden animate-in zoom-in-95 duration-300">
+        <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+          <h2 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2.5">
+            <div className="bg-indigo-100 dark:bg-indigo-900/50 p-1.5 rounded-lg text-indigo-600 dark:text-indigo-400">
+              <Plus size={20} />
+            </div>
+            Install CarryOut
+          </h2>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-full p-2 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+            <X size={20} />
+          </button>
+        </div>
+        
+        <div className="p-6">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="bg-indigo-100 dark:bg-indigo-900/30 p-3 rounded-xl">
+              <Layout size={32} className="text-indigo-600 dark:text-indigo-400" />
+            </div>
+            <div>
+              <h3 className="font-bold text-slate-800 dark:text-white">Get the full CarryOut experience</h3>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Install as app for offline access and notifications</p>
+            </div>
+          </div>
+          
+          <div className="space-y-4">
+            <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+              <div className="bg-emerald-100 dark:bg-emerald-900/30 p-2 rounded">
+                <CheckCircle2 size={18} className="text-emerald-600 dark:text-emerald-400" />
+              </div>
+              <div className="flex-1">
+                <h4 className="font-medium text-slate-800 dark:text-slate-200">Offline Access</h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Use without internet connection</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+              <div className="bg-blue-100 dark:bg-blue-900/30 p-2 rounded">
+                <Bell size={18} className="text-blue-600 dark:text-blue-400" />
+              </div>
+              <div className="flex-1">
+                <h4 className="font-medium text-slate-800 dark:text-slate-200">Push Notifications</h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Get reminders for due tasks</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+              <div className="bg-amber-100 dark:bg-amber-900/30 p-2 rounded">
+                <TrendingUp size={18} className="text-amber-600 dark:text-amber-400" />
+              </div>
+              <div className="flex-1">
+                <h4 className="font-medium text-slate-800 dark:text-slate-200">Fast Loading</h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Launch instantly from home screen</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div className="p-5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 flex justify-end gap-3">
+          <button 
+            onClick={onClose}
+            className="px-5 py-2.5 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-800 rounded-xl transition-colors"
+          >
+            Not Now
+          </button>
+          <button 
+            onClick={onInstall}
+            className="px-8 py-2.5 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-600 dark:hover:bg-indigo-500 rounded-xl shadow-lg shadow-indigo-500/30 dark:shadow-indigo-900/50 transition-all"
+          >
+            Install App
           </button>
         </div>
       </div>
@@ -1339,11 +1420,8 @@ const AddTaskModal = ({ isOpen, onClose, onAdd, categories, setCategories }) => 
   };
 
   const handleAddCategory = (e) => {
-    // Prevent any default behavior that might interfere
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
+    e?.preventDefault();
+    e?.stopPropagation();
     
     if (newCategory.trim()) {
       const categoryKey = newCategory.toLowerCase().trim().replace(/\s+/g, '_');
@@ -1378,6 +1456,23 @@ const AddTaskModal = ({ isOpen, onClose, onAdd, categories, setCategories }) => 
       setShowNewCategory(false);
     }
   };
+
+  // Add keyboard event listener for Enter key
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (showNewCategory && e.key === 'Enter' && newCategory.trim()) {
+        handleAddCategory();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [showNewCategory, newCategory, isOpen]);
 
   if (!isOpen) return null;
 
@@ -1426,86 +1521,86 @@ const AddTaskModal = ({ isOpen, onClose, onAdd, categories, setCategories }) => 
               />
             </div>
 
-        {/* MODIFIED SECTION: Changed grid to flex-col on mobile */}
-        <div className="flex flex-col md:grid md:grid-cols-2 gap-5">
-          <div className="relative z-10"> {/* Added z-10 to bring to front */}
-            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Category</label>
-            <div className="relative">
-              <select 
-                className="w-full text-sm border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white rounded-xl px-4 py-2.5 appearance-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer shadow-sm"
-                value={task.category}
-                onChange={e => setTask({...task, category: e.target.value})}
-              >
-                {Object.keys(categories).map(cat => (
-                  <option key={cat} value={cat}>{cat.charAt(0).toUpperCase() + cat.slice(1)}</option>
-                ))}
-              </select>
-              <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+            {/* CATEGORY SECTION - FIXED FOR MOBILE */}
+            <div className="space-y-5">
+              <div>
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Category</label>
+                <div className="relative">
+                  <select 
+                    className="w-full text-sm border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white rounded-xl px-4 py-2.5 appearance-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer shadow-sm"
+                    value={task.category}
+                    onChange={e => setTask({...task, category: e.target.value})}
+                  >
+                    {Object.keys(categories).map(cat => (
+                      <option key={cat} value={cat}>{cat.charAt(0).toUpperCase() + cat.slice(1)}</option>
+                    ))}
+                  </select>
+                  <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                </div>
+                
+                {/* CUSTOM CATEGORY BUTTON - SEPARATED TO AVOID OVERLAP */}
+                <div className="mt-3">
+                  <button 
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setShowNewCategory(!showNewCategory);
+                    }}
+                    className="w-full flex items-center justify-center gap-2 text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium px-4 py-2.5 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-colors border border-indigo-100 dark:border-indigo-800"
+                  >
+                    <Plus size={14} /> 
+                    {showNewCategory ? 'Cancel Custom Category' : 'Add Custom Category'}
+                  </button>
+                  
+                  {showNewCategory && (
+                    <div className="mt-3 animate-in slide-in-from-top-2">
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <div className="flex-1">
+                          <input
+                            type="text"
+                            value={newCategory}
+                            onChange={(e) => setNewCategory(e.target.value)}
+                            placeholder="Enter category name"
+                            className="w-full text-sm border-slate-200 dark:border-slate-700 dark:bg-slate-800 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                            autoFocus
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleAddCategory}
+                          className="px-5 py-2.5 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2 shadow-sm min-w-[80px]"
+                          disabled={!newCategory.trim()}
+                        >
+                          <Plus size={14} /> Add
+                        </button>
+                      </div>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+                        New categories will be saved automatically
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* PRIORITY SECTION - SEPARATE TO AVOID GRID OVERLAP */}
+              <div>
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Priority</label>
+                <div className="relative">
+                  <select 
+                    className="w-full text-sm border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white rounded-xl px-4 py-2.5 appearance-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer shadow-sm"
+                    value={task.priority}
+                    onChange={e => setTask({...task, priority: e.target.value})}
+                  >
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                  </select>
+                  <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                </div>
+              </div>
             </div>
 
-            {/* Custom category button and input area */}
-            <div className="mt-3 relative z-50"> {/* HIGH z-index for mobile */}
-              <button 
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setShowNewCategory(!showNewCategory);
-                }}
-                className="inline-flex items-center gap-1 text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-colors border border-indigo-100 dark:border-indigo-800"
-              >
-                <Plus size={12} /> {showNewCategory ? 'Cancel' : 'Add custom'}
-              </button>
-              
-              {showNewCategory && (
-                <div className="mt-3 p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-lg animate-in slide-in-from-top-2 relative z-50">
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <div className="flex-1">
-                      <input
-                        type="text"
-                        value={newCategory}
-                        onChange={(e) => setNewCategory(e.target.value)}
-                        placeholder="Enter category name"
-                        className="w-full text-sm border-slate-200 dark:border-slate-700 dark:bg-slate-800 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                        autoFocus
-                        onKeyDown={(e) => e.key === 'Enter' && handleAddCategory()}
-                      />
-                    </div>
-                    <button
-                      type="button"
-                      onClick={handleAddCategory}
-                      className="px-4 py-2.5 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors min-w-[80px] flex items-center justify-center shadow-sm"
-                      disabled={!newCategory.trim()}
-                    >
-                      Add
-                    </button>
-                  </div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
-                    New categories will be saved automatically
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-          
-          {/* Priority field - moved to separate div with lower z-index */}
-          <div className="relative z-0">
-            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Priority</label>
-            <div className="relative">
-              <select 
-                className="w-full text-sm border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white rounded-xl px-4 py-2.5 appearance-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer shadow-sm"
-                value={task.priority}
-                onChange={e => setTask({...task, priority: e.target.value})}
-              >
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-              </select>
-              <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-            </div>
-          </div>
-        </div>
-                  
             <div className="grid grid-cols-2 gap-5">
               <div>
                 <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
@@ -1617,6 +1712,11 @@ const App = () => {
     return savedCategories ? JSON.parse(savedCategories) : DEFAULT_CATEGORIES;
   });
 
+  // PWA Installation states
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+  const [isAppInstalled, setIsAppInstalled] = useState(false);
+
   // Check if this is a first-time user (no tasks ever created)
   const isFirstTimeUser = tasks.length === 0 && !localStorage.getItem('hasCreatedTask');
 
@@ -1674,6 +1774,77 @@ const App = () => {
     // Update categories when they change
     localStorage.setItem('customCategories', JSON.stringify(categories));
   }, [categories]);
+
+  // PWA Installation handling
+  useEffect(() => {
+    // Check if app is already installed
+    const checkIfInstalled = () => {
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
+                          window.navigator.standalone ||
+                          document.referrer.includes('android-app://');
+      setIsAppInstalled(isStandalone);
+    };
+
+    checkIfInstalled();
+
+    // Listen for beforeinstallprompt event
+    const handleBeforeInstallPrompt = (e) => {
+      // Prevent Chrome 67 and earlier from automatically showing the prompt
+      e.preventDefault();
+      // Stash the event so it can be triggered later
+      setDeferredPrompt(e);
+      
+      // Show custom install prompt if not already installed
+      setTimeout(() => {
+        if (!isAppInstalled && localStorage.getItem('installPromptShown') !== 'true') {
+          setShowInstallPrompt(true);
+        }
+      }, 3000); // Show after 3 seconds
+    };
+
+    // Listen for app installed event
+    const handleAppInstalled = () => {
+      setIsAppInstalled(true);
+      setDeferredPrompt(null);
+      setShowInstallPrompt(false);
+      localStorage.setItem('installPromptShown', 'true');
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    // Check on page load
+    window.addEventListener('load', checkIfInstalled);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+      window.removeEventListener('load', checkIfInstalled);
+    };
+  }, [isAppInstalled]);
+
+  // Handle install button click
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    
+    // Show the install prompt
+    deferredPrompt.prompt();
+    
+    // Wait for the user to respond to the prompt
+    const { outcome } = await deferredPrompt.userChoice;
+    
+    if (outcome === 'accepted') {
+      console.log('User accepted the install prompt');
+      setIsAppInstalled(true);
+      localStorage.setItem('installPromptShown', 'true');
+    } else {
+      console.log('User dismissed the install prompt');
+    }
+    
+    // Clear the saved prompt since it can't be used again
+    setDeferredPrompt(null);
+    setShowInstallPrompt(false);
+  };
 
   const toggleTheme = () => setDarkMode(!darkMode);
 
@@ -1812,6 +1983,20 @@ const App = () => {
     const recurring = tasks.filter(t => t.recurrence).length;
     return { total, completed, overdue, dueToday, recurring };
   }, [tasks]);
+
+  // Render install button in header
+  const renderInstallButton = () => {
+    if (isAppInstalled || !deferredPrompt) return null;
+    
+    return (
+      <button
+        onClick={() => setShowInstallPrompt(true)}
+        className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-emerald-600 text-white text-xs font-semibold rounded-lg hover:bg-emerald-700 transition-colors"
+      >
+        <Download size={14} /> Install
+      </button>
+    );
+  };
 
   return (
     <div className={`min-h-screen transition-colors duration-200 ${darkMode ? 'dark bg-slate-950' : 'bg-slate-50'}`}>
@@ -1972,6 +2157,9 @@ const App = () => {
             </div>
             
             <div className="flex gap-2 md:gap-3">
+              {/* Install Button for Desktop */}
+              {renderInstallButton()}
+              
               <button 
                 onClick={() => setIsFilterOpen(true)}
                 className="p-2 md:p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 hover:shadow-md transition-all"
@@ -2113,6 +2301,15 @@ const App = () => {
           onClose={() => setIsNotificationsOpen(false)}
           tasks={tasks}
           darkMode={darkMode}
+        />
+
+        <InstallPromptModal
+          isOpen={showInstallPrompt}
+          onClose={() => {
+            setShowInstallPrompt(false);
+            localStorage.setItem('installPromptShown', 'true');
+          }}
+          onInstall={handleInstallClick}
         />
   
         {/* Overlay for mobile sidebar */}
