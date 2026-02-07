@@ -277,5 +277,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 <div align="center">
 Made with ❤️ by Priyanshu Bhardwaj
 
-[![Star History Chart](https://api.star-history.com/svg?repos=trulypriyanshu/carryout&type=Date)](https://star-history.com/#trulypriyanshu/carryout&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=trulypriyanshu/carryout&type=Date&theme=dark)](https://star-history.com/#trulypriyanshu/carryout&Date&dark)
 </div>
