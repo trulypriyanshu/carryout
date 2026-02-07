@@ -1338,7 +1338,7 @@ const AddTaskModal = ({ isOpen, onClose, onAdd, categories, setCategories }) => 
     onClose();
   };
 
-  const handleAddCategory = () => {
+  const handleAddCategory = (e) => {
     // Prevent any default behavior that might interfere
     if (e) {
       e.preventDefault();
