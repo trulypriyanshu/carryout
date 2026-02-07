@@ -225,7 +225,7 @@ const PRIORITY_COLORS = {
 
 // --- MODAL COMPONENTS ---
 
-const SettingsModal = ({ isOpen, onClose, onClearData, darkMode }) => {
+const SettingsModal = ({ isOpen, onClose, onClearData, darkMode, toggleTheme }) => {
   const [confirmClear, setConfirmClear] = useState(false);
 
   if (!isOpen) return null;
