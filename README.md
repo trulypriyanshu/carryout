@@ -4,6 +4,51 @@ A modern, feature-rich Progressive Web App (PWA) for task management with intell
 
 ![CarryOut Screenshot](./public/screenshot-1.png)
 
+## 📖 Table of Contents
+
+- [✨ Features](#-features)
+  - [🎯 Core Functionality](#-core-functionality)
+  - [🔄 Advanced Recurrence System](#-advanced-recurrence-system)
+  - [📊 Productivity Insights](#-productivity-insights)
+  - [🌐 PWA Features](#-pwa-features)
+  - [🎨 Design & UX](#-design--ux)
+  - [⚙️ Advanced Features](#️-advanced-features)
+- [🚀 Quick Start](#-quick-start)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+  - [PWA Setup](#pwa-setup)
+- [📱 PWA Configuration](#-pwa-configuration)
+  - [Manifest Features](#manifest-features)
+  - [Service Worker](#service-worker)
+- [🏗️ Architecture](#️-architecture)
+  - [Tech Stack](#tech-stack)
+  - [Project Structure](#project-structure)
+  - [Current Code Organization](#current-code-organization)
+  - [Recommended Refactoring (Optional)](#recommended-refactoring-optional)
+  - [Quick Refactoring Steps](#quick-refactoring-steps)
+- [🔧 Configuration](#-configuration)
+  - [Environment Variables](#environment-variables)
+  - [Customizing Categories](#customizing-categories)
+  - [Theme Customization](#theme-customization)
+- [📖 Usage Guide](#-usage-guide)
+  - [Creating Tasks](#creating-tasks)
+  - [Managing Recurring Tasks](#managing-recurring-tasks)
+  - [Using Filters](#using-filters)
+- [🧪 Testing](#-testing)
+- [📱 Browser Support](#-browser-support)
+- [🔒 Security](#-security)
+- [📈 Performance](#-performance)
+- [🤝 Contributing](#-contributing)
+  - [Development Guidelines](#development-guidelines)
+- [🚀 Deployment](#-deployment)
+  - [Static Hosting (Recommended)](#static-hosting-recommended)
+  - [Docker Deployment](#docker-deployment)
+- [📄 License](#-license)
+- [🙏 Acknowledgments](#-acknowledgments)
+- [📞 Support](#-support)
+
+---
+
 ## ✨ Features
 
 ### 🎯 **Core Functionality**
@@ -110,21 +155,25 @@ node create-icons.js
 ### Project Structure
 ```
 carryout/
-├── public/                 # Static assets and PWA files
-│   ├── manifest.json      # Web app manifest
-│   ├── icons/            # Generated PWA icons
-│   └── splash-screens/   # iOS splash screens
+├── public/                  # Static assets and PWA files
+│   ├── index.html           # Main HTML file with PWA configuration
+│   ├── manifest.json        # Web app manifest
+│   ├── favicon.ico          # Favicon
+│   ├── icon-192x192.png     # PWA icons (generated)
+│   ├── icon-512x512.png     # PWA icons (generated)
+│   ├── apple-touch-icon.png # iOS home screen icon
+│   ├── splash-*.png         # iOS splash screens (generated)
+│   └── browserconfig.xml    # Windows tile configuration
 ├── src/
-│   ├── components/       # React components
-│   │   ├── TaskItem.js   # Individual task component
-│   │   ├── Checklist.js  # Subtask management
-│   │   └── Modals/       # All modal components
-│   ├── utils/           # Utility functions
-│   │   ├── recurrence.js # Recurrence logic
-│   │   └── dateUtils.js  # Date formatting helpers
-│   └── App.js           # Main application component
-├── create-icons.js      # Icon generator script
-└── README.md           # This file
+│   ├── App.js              # **Main application (monolithic)**
+│   ├── index.js            # React entry point
+│   ├── index.css           # Global styles
+│   └── service-worker.js   # Service worker (if exists)
+├── create-icons.js         # Icon generator script (standalone)
+├── package.json            # Dependencies and scripts
+├── README.md               # This documentation
+├── postcss.config.js       # Post CSS configuration
+└── tailwind.config.js      # Tailwind CSS configuration
 ```
 
 ## 🔧 Configuration
