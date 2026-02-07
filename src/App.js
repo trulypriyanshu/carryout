@@ -1643,7 +1643,7 @@ const AddTaskModal = ({ isOpen, onClose, onAdd, categories, setCategories }) => 
                      <option value="monthly">Monthly</option>
                      <option value="yearly">Yearly</option>
                    </select>
-                   <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                   <ChevronDown size={16} className="absolute right-0 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                  </div>
               </div>
             </div>
