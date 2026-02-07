@@ -1554,28 +1554,38 @@ const AddTaskModal = ({ isOpen, onClose, onAdd, categories, setCategories }) => 
                   </button>
                   
                   {showNewCategory && (
-                    <div className="mt-3 animate-in slide-in-from-top-2">
-                      <div className="flex flex-col sm:flex-row gap-2">
-                        <div className="flex-1">
-                          <input
-                            type="text"
-                            value={newCategory}
-                            onChange={(e) => setNewCategory(e.target.value)}
-                            placeholder="Enter category name"
-                            className="w-full text-sm border-slate-200 dark:border-slate-700 dark:bg-slate-800 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                            autoFocus
-                          />
-                        </div>
+                    <div className="mt-3 animate-in slide-in-from-top-2 space-y-3">
+                      <div>
+                        <input
+                          type="text"
+                          value={newCategory}
+                          onChange={(e) => setNewCategory(e.target.value)}
+                          placeholder="Enter category name"
+                          className="w-full text-sm border-slate-200 dark:border-slate-700 dark:bg-slate-800 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                          autoFocus
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowNewCategory(false);
+                            setNewCategory('');
+                          }}
+                          className="flex-1 px-4 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                        >
+                          Cancel
+                        </button>
                         <button
                           type="button"
                           onClick={handleAddCategory}
-                          className="px-5 py-2.5 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2 shadow-sm min-w-[80px]"
+                          className="flex-1 px-4 py-2.5 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2 shadow-sm"
                           disabled={!newCategory.trim()}
                         >
-                          <Plus size={14} /> Add
+                          <Plus size={14} /> Add Category
                         </button>
                       </div>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+                      <p className="text-xs text-slate-500 dark:text-slate-400 text-center">
                         New categories will be saved automatically
                       </p>
                     </div>
