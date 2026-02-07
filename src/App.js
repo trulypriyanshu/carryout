@@ -980,7 +980,7 @@ const RecurrenceSettings = ({ recurrence, pattern, onChangeRecurrence, onChangeP
               <option value="monthly">Monthly</option>
               <option value="yearly">Yearly</option>
             </select>
-            <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+            <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
           </div>
         </div>
 
@@ -1620,7 +1620,7 @@ const AddTaskModal = ({ isOpen, onClose, onAdd, categories, setCategories }) => 
                 </label>
                 <input
                   type="date"
-                  className={`w-full text-sm border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 shadow-sm cursor-pointer ${
+                  className={`w-full text-sm border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 shadow-sm cursor-pointer appearance-none ${
                     errors.dueDate ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/20' : ''
                   }`}
                   value={task.dueDate}
