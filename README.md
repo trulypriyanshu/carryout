@@ -5,7 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
 [![PWA Ready](https://img.shields.io/badge/PWA-Ready-success?style=for-the-badge&logo=pwa)](https://pwabuilder.com)
 
-> A modern, feature-rich Progressive Web App (PWA) for task management with intelligent recurring tasks, checklists, and productivity insights. Built with React and designed for seamless cross-platform use.
+A modern, feature-rich Progressive Web App (PWA) for task management with intelligent recurring tasks, checklists, and productivity insights. Built with React and designed for seamless cross-platform use.
 
 ![CarryOut Screenshot](./public/screenshot-1.png)
 
