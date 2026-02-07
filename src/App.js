@@ -1521,8 +1521,9 @@ const AddTaskModal = ({ isOpen, onClose, onAdd, categories, setCategories }) => 
               />
             </div>
 
-            {/* CATEGORY SECTION - FIXED FOR MOBILE */}
-            <div className="space-y-5">
+            {/* CATEGORY AND PRIORITY IN SAME ROW ON DESKTOP, STACKED ON MOBILE */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {/* CATEGORY SECTION */}
               <div>
                 <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Category</label>
                 <div className="relative">
@@ -1538,7 +1539,7 @@ const AddTaskModal = ({ isOpen, onClose, onAdd, categories, setCategories }) => 
                   <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                 </div>
                 
-                {/* CUSTOM CATEGORY BUTTON - SEPARATED TO AVOID OVERLAP */}
+                {/* CUSTOM CATEGORY SECTION */}
                 <div className="mt-3">
                   <button 
                     type="button"
@@ -1593,7 +1594,7 @@ const AddTaskModal = ({ isOpen, onClose, onAdd, categories, setCategories }) => 
                 </div>
               </div>
 
-              {/* PRIORITY SECTION - SEPARATE TO AVOID GRID OVERLAP */}
+              {/* PRIORITY SECTION */}
               <div>
                 <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Priority</label>
                 <div className="relative">
@@ -1611,7 +1612,8 @@ const AddTaskModal = ({ isOpen, onClose, onAdd, categories, setCategories }) => 
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-5">
+            {/* DUE DATE AND RECURRENCE */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
                 <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
                   Due Date *
@@ -1699,7 +1701,7 @@ const App = () => {
   });
   const [filter, setFilter] = useState('today'); 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Sidebar closed by default on mobile
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
@@ -1716,7 +1718,7 @@ const App = () => {
     return saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
   });
 
-  // Categories state - with setter to pass to AddTaskModal
+  // Categories state
   const [categories, setCategories] = useState(() => {
     const savedCategories = localStorage.getItem('customCategories');
     return savedCategories ? JSON.parse(savedCategories) : DEFAULT_CATEGORIES;
@@ -1727,7 +1729,7 @@ const App = () => {
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const [isAppInstalled, setIsAppInstalled] = useState(false);
 
-  // Check if this is a first-time user (no tasks ever created)
+  // Check if this is a first-time user
   const isFirstTimeUser = tasks.length === 0 && !localStorage.getItem('hasCreatedTask');
 
   useEffect(() => {
@@ -1740,7 +1742,7 @@ const App = () => {
   useEffect(() => {
     localStorage.setItem('theme', darkMode ? 'dark' : 'light');
     
-    // Add custom scrollbar styles to the document
+    // Add custom scrollbar styles
     const style = document.createElement('style');
     style.textContent = `
       .custom-scrollbar::-webkit-scrollbar {
@@ -1763,7 +1765,6 @@ const App = () => {
         scrollbar-color: ${darkMode ? '#334155 #0f172a' : '#cbd5e1 #f8fafc'};
       }
       
-      /* Mobile Safe Area Improvements */
       @supports (padding-bottom: env(safe-area-inset-bottom)) {
         .safe-area-bottom {
           padding-bottom: env(safe-area-inset-bottom);
@@ -1781,13 +1782,11 @@ const App = () => {
   }, [darkMode]);
 
   useEffect(() => {
-    // Update categories when they change
     localStorage.setItem('customCategories', JSON.stringify(categories));
   }, [categories]);
 
   // PWA Installation handling
   useEffect(() => {
-    // Check if app is already installed
     const checkIfInstalled = () => {
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
                           window.navigator.standalone ||
@@ -1797,22 +1796,17 @@ const App = () => {
 
     checkIfInstalled();
 
-    // Listen for beforeinstallprompt event
     const handleBeforeInstallPrompt = (e) => {
-      // Prevent Chrome 67 and earlier from automatically showing the prompt
       e.preventDefault();
-      // Stash the event so it can be triggered later
       setDeferredPrompt(e);
       
-      // Show custom install prompt if not already installed
       setTimeout(() => {
         if (!isAppInstalled && localStorage.getItem('installPromptShown') !== 'true') {
           setShowInstallPrompt(true);
         }
-      }, 3000); // Show after 3 seconds
+      }, 3000);
     };
 
-    // Listen for app installed event
     const handleAppInstalled = () => {
       setIsAppInstalled(true);
       setDeferredPrompt(null);
@@ -1822,8 +1816,6 @@ const App = () => {
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
-
-    // Check on page load
     window.addEventListener('load', checkIfInstalled);
 
     return () => {
@@ -1833,25 +1825,17 @@ const App = () => {
     };
   }, [isAppInstalled]);
 
-  // Handle install button click
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;
     
-    // Show the install prompt
     deferredPrompt.prompt();
-    
-    // Wait for the user to respond to the prompt
     const { outcome } = await deferredPrompt.userChoice;
     
     if (outcome === 'accepted') {
-      console.log('User accepted the install prompt');
       setIsAppInstalled(true);
       localStorage.setItem('installPromptShown', 'true');
-    } else {
-      console.log('User dismissed the install prompt');
     }
     
-    // Clear the saved prompt since it can't be used again
     setDeferredPrompt(null);
     setShowInstallPrompt(false);
   };
@@ -1873,13 +1857,9 @@ const App = () => {
     const task = tasks.find(t => t.id === taskId);
     if (!task) return;
 
-    // Calculate next occurrence based on current date/time
     const nextDate = calculateNextOccurrence(task, new Date());
-    
-    // Complete current task
     const updatedTasks = tasks.map(t => t.id === taskId ? { ...t, completed: true } : t);
 
-    // Create next occurrence if valid
     if (nextDate) {
       const newTask = {
         ...task,
@@ -1899,7 +1879,6 @@ const App = () => {
     const task = tasks.find(t => t.id === taskId);
     if (!task || !task.recurrence) return;
 
-    // Find if there's a next occurrence that was created
     const now = new Date();
     const nextOccurrence = tasks.find(t => 
       t.id !== taskId && 
@@ -1909,12 +1888,10 @@ const App = () => {
       !t.completed
     );
 
-    // Mark current task as not completed
     let updatedTasks = tasks.map(t => 
       t.id === taskId ? { ...t, completed: false } : t
     );
 
-    // If there's a next occurrence, remove it
     if (nextOccurrence) {
       updatedTasks = updatedTasks.filter(t => t.id !== nextOccurrence.id);
     }
@@ -2013,7 +1990,7 @@ const App = () => {
       <div className="flex min-h-screen font-sans text-slate-900 dark:text-slate-100 selection:bg-indigo-100 dark:selection:bg-indigo-900/50 selection:text-indigo-900 dark:selection:text-indigo-100">
         
         {/* Mobile Header */}
-        <div className="md:hidden fixed top-0 w-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 z-40 px-4 py-3 flex justify-between items-center transition-colors duration-200">
+        <div className="md:hidden fixed top-0 w-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 z-40 px-4 py-3 flex justify-between items-center transition-colors duration-200 safe-area-top">
            <div className="flex items-center gap-2 font-bold text-indigo-600 dark:text-indigo-400">
              <div className="bg-indigo-600 text-white p-1 rounded-md">
                 <Layout size={18} fill="currentColor" />
@@ -2268,7 +2245,7 @@ const App = () => {
         {/* Floating Action Button (Mobile) */}
         <button
           onClick={() => setIsModalOpen(true)}
-          className="md:hidden fixed bottom-6 right-6 z-50 p-4 bg-indigo-600 text-white rounded-full shadow-xl shadow-indigo-600/40 hover:scale-105 active:scale-95 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-600"
+          className="md:hidden fixed bottom-6 right-6 z-50 p-4 bg-indigo-600 text-white rounded-full shadow-xl shadow-indigo-600/40 hover:scale-105 active:scale-95 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-600 safe-area-bottom"
         >
           <Plus size={24} />
         </button>
@@ -2276,7 +2253,7 @@ const App = () => {
         {/* Settings Button (Mobile) */}
         <button
           onClick={() => setIsSettingsOpen(true)}
-          className="md:hidden fixed bottom-6 left-6 z-50 p-4 bg-slate-800 text-white rounded-full shadow-xl shadow-slate-900/40 hover:scale-105 active:scale-95 transition-all"
+          className="md:hidden fixed bottom-6 left-6 z-50 p-4 bg-slate-800 text-white rounded-full shadow-xl shadow-slate-900/40 hover:scale-105 active:scale-95 transition-all safe-area-bottom"
         >
           <Settings size={24} />
         </button>
