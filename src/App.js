@@ -1339,8 +1339,14 @@ const AddTaskModal = ({ isOpen, onClose, onAdd, categories, setCategories }) => 
   };
 
   const handleAddCategory = () => {
+    // Prevent any default behavior that might interfere
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
     if (newCategory.trim()) {
-      const categoryKey = newCategory.toLowerCase().trim();
+      const categoryKey = newCategory.toLowerCase().trim().replace(/\s+/g, '_');
       
       // Check if category already exists
       if (!categories[categoryKey]) {
@@ -1359,7 +1365,7 @@ const AddTaskModal = ({ isOpen, onClose, onAdd, categories, setCategories }) => 
         const randomColor = categoryColors[Math.floor(Math.random() * categoryColors.length)];
         const newCategories = { ...categories, [categoryKey]: randomColor };
         
-        // Update the categories state (this will trigger the useEffect in App)
+        // Update the categories state
         setCategories(newCategories);
         
         // Save to localStorage
