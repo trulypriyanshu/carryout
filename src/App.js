@@ -1798,7 +1798,7 @@ const App = () => {
       <div className="flex min-h-screen font-sans text-slate-900 dark:text-slate-100 selection:bg-indigo-100 dark:selection:bg-indigo-900/50 selection:text-indigo-900 dark:selection:text-indigo-100">
         
         {/* Mobile Header */}
-        <div className="md:hidden fixed top-0 w-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 z-40 px-4 py-3 flex justify-between items-center transition-colors duration-200 safe-area-top">
+        <div className="md:hidden fixed top-0 w-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 z-40 px-4 py-3 flex justify-between items-center transition-colors duration-200">
            <div className="flex items-center gap-2 font-bold text-indigo-600 dark:text-indigo-400">
              <div className="bg-indigo-600 text-white p-1 rounded-md">
                 <Layout size={18} fill="currentColor" />
@@ -2050,7 +2050,7 @@ const App = () => {
         {/* Floating Action Button (Mobile) */}
         <button
           onClick={() => setIsModalOpen(true)}
-          className="md:hidden fixed bottom-6 right-6 z-50 p-4 bg-indigo-600 text-white rounded-full shadow-xl shadow-indigo-600/40 hover:scale-105 active:scale-95 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-600 safe-area-bottom"
+          className="md:hidden fixed bottom-6 right-6 z-50 p-4 bg-indigo-600 text-white rounded-full shadow-xl shadow-indigo-600/40 hover:scale-105 active:scale-95 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-600"
         >
           <Plus size={24} />
         </button>
@@ -2058,7 +2058,7 @@ const App = () => {
         {/* Settings Button (Mobile) */}
         <button
           onClick={() => setIsSettingsOpen(true)}
-          className="md:hidden fixed bottom-6 left-6 z-50 p-4 bg-slate-800 text-white rounded-full shadow-xl shadow-slate-900/40 hover:scale-105 active:scale-95 transition-all safe-area-bottom"
+          className="md:hidden fixed bottom-6 left-6 z-50 p-4 bg-slate-800 text-white rounded-full shadow-xl shadow-slate-900/40 hover:scale-105 active:scale-95 transition-all"
         >
           <Settings size={24} />
         </button>
