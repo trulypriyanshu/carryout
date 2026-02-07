@@ -1426,71 +1426,86 @@ const AddTaskModal = ({ isOpen, onClose, onAdd, categories, setCategories }) => 
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-5">
-              <div>
-                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Category</label>
-                <div className="relative">
-                  <select 
-                    className="w-full text-sm border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white rounded-xl px-4 py-2.5 appearance-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer shadow-sm"
-                    value={task.category}
-                    onChange={e => setTask({...task, category: e.target.value})}
-                  >
-                    {Object.keys(categories).map(cat => (
-                      <option key={cat} value={cat}>{cat.charAt(0).toUpperCase() + cat.slice(1)}</option>
-                    ))}
-                  </select>
-                  <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                </div>
-                <button 
-                  type="button"
-                  onClick={() => setShowNewCategory(!showNewCategory)}
-                  className="mt-2 text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium flex items-center gap-1"
-                >
-                  <Plus size={12} /> Add custom category
-                </button>
-                
-                {showNewCategory && (
-                  <div className="mt-2 flex gap-2 animate-in slide-in-from-top-2">
-                    <input
-                      type="text"
-                      value={newCategory}
-                      onChange={(e) => setNewCategory(e.target.value)}
-                      placeholder="Enter category name"
-                      className="flex-1 text-sm border-slate-200 dark:border-slate-700 dark:bg-slate-800 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                      onKeyDown={(e) => e.key === 'Enter' && handleAddCategory()}
-                    />
+        {/* MODIFIED SECTION: Changed grid to flex-col on mobile */}
+        <div className="flex flex-col md:grid md:grid-cols-2 gap-5">
+          <div className="relative z-10"> {/* Added z-10 to bring to front */}
+            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Category</label>
+            <div className="relative">
+              <select 
+                className="w-full text-sm border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white rounded-xl px-4 py-2.5 appearance-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer shadow-sm"
+                value={task.category}
+                onChange={e => setTask({...task, category: e.target.value})}
+              >
+                {Object.keys(categories).map(cat => (
+                  <option key={cat} value={cat}>{cat.charAt(0).toUpperCase() + cat.slice(1)}</option>
+                ))}
+              </select>
+              <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+            </div>
+
+            {/* Custom category button and input area */}
+            <div className="mt-3 relative z-50"> {/* HIGH z-index for mobile */}
+              <button 
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowNewCategory(!showNewCategory);
+                }}
+                className="inline-flex items-center gap-1 text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-colors border border-indigo-100 dark:border-indigo-800"
+              >
+                <Plus size={12} /> {showNewCategory ? 'Cancel' : 'Add custom'}
+              </button>
+              
+              {showNewCategory && (
+                <div className="mt-3 p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-lg animate-in slide-in-from-top-2 relative z-50">
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <div className="flex-1">
+                      <input
+                        type="text"
+                        value={newCategory}
+                        onChange={(e) => setNewCategory(e.target.value)}
+                        placeholder="Enter category name"
+                        className="w-full text-sm border-slate-200 dark:border-slate-700 dark:bg-slate-800 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                        autoFocus
+                        onKeyDown={(e) => e.key === 'Enter' && handleAddCategory()}
+                      />
+                    </div>
                     <button
                       type="button"
                       onClick={handleAddCategory}
-                      className="px-3 py-1.5 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700 transition-colors"
+                      className="px-4 py-2.5 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors min-w-[80px] flex items-center justify-center shadow-sm"
+                      disabled={!newCategory.trim()}
                     >
                       Add
                     </button>
                   </div>
-                )}
-                {showNewCategory && (
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
                     New categories will be saved automatically
                   </p>
-                )}
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Priority</label>
-                <div className="relative">
-                  <select 
-                    className="w-full text-sm border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white rounded-xl px-4 py-2.5 appearance-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer shadow-sm"
-                    value={task.priority}
-                    onChange={e => setTask({...task, priority: e.target.value})}
-                  >
-                    <option value="low">Low</option>
-                    <option value="medium">Medium</option>
-                    <option value="high">High</option>
-                  </select>
-                  <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                 </div>
-              </div>
+              )}
             </div>
-
+          </div>
+          
+          {/* Priority field - moved to separate div with lower z-index */}
+          <div className="relative z-0">
+            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Priority</label>
+            <div className="relative">
+              <select 
+                className="w-full text-sm border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white rounded-xl px-4 py-2.5 appearance-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer shadow-sm"
+                value={task.priority}
+                onChange={e => setTask({...task, priority: e.target.value})}
+              >
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+              </select>
+              <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+            </div>
+          </div>
+        </div>
+                  
             <div className="grid grid-cols-2 gap-5">
               <div>
                 <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
